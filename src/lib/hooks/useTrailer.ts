@@ -58,6 +58,7 @@ export function useTrailer() {
     title: string
     assignee: string
     stage: TrailerStage
+    status?: TrailerTask['status']
   }) => {
     const res = await fetch('/api/trailer', {
       method: 'POST',

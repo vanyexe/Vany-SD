@@ -53,12 +53,7 @@ export default function TrailerPage() {
       setAddingToCol(null)
       return
     }
-    await addTask({ title: newTaskTitle.trim(), assignee: newTaskAssignee, stage: activeStage })
-    // In a real app we'd also patch the status if it's not 'todo' immediately after, 
-    // but the hook creates it as 'todo'. Let's find it and update it if needed.
-    // To keep it simple, inline add always adds to the specific col by finding it, 
-    // actually our addTask hook hardcodes status to 'todo' on backend. So we might need to patch it.
-    // We will just let it go to TODO and then patch it if col !== 'todo'
+    await addTask({ title: newTaskTitle.trim(), assignee: newTaskAssignee, stage: activeStage, status: col })
     setNewTaskTitle('')
     setNewTaskAssignee('You')
     setAddingToCol(null)

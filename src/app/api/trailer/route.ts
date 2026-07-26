@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { title, assignee, stage } = body
+  const { title, assignee, stage, status } = body
 
   if (!title || !stage) {
     return NextResponse.json({ error: 'title and stage are required' }, { status: 400 })
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       title,
       assignee: assignee || 'You',
       stage,
-      status: 'todo',
+      status: status || 'todo',
     })
     .select()
     .single()

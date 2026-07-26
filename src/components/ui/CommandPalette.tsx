@@ -106,18 +106,22 @@ export default function CommandPalette({ onClose }: { onClose?: () => void }) {
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        // Mock fetch for now, replace with actual API call
-        // const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        // const data = await res.json();
-        // setResults(data);
-        
-        // Mock data
-        const mockData: CommandResult[] = [
-          { id: '1', title: 'Implement React Query', subtitle: 'Frontend Phase', type: 'Task', url: '/tasks/1' },
-          { id: '2', title: 'Two Sum', subtitle: 'Arrays & Hashing', type: 'DSA', url: '/dsa/two-sum' },
-          { id: '3', title: 'Next.js 14 App Router Notes', subtitle: 'Web Dev', type: 'Note', url: '/notes/next14' },
-        ];
-        setResults(mockData.filter(item => item.title.toLowerCase().includes(query.toLowerCase())));
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const mapped: CommandResult[] = [];
+          
+          if (data.tasks) data.tasks.forEach((t: any) => mapped.push({ id: `task_${t.id}`, title: t.title, subtitle: t.description || 'Task', type: 'Task', url: '/tasks' }));
+          if (data.dsa) data.dsa.forEach((d: any) => mapped.push({ id: `dsa_${d.id}`, title: d.title, subtitle: `Difficulty: ${d.difficulty || 'Unknown'}`, type: 'DSA', url: '/dsa' }));
+          if (data.notes) data.notes.forEach((n: any) => mapped.push({ id: `note_${n.id}`, title: n.title, subtitle: 'Note', type: 'Note', url: '/notes' }));
+          if (data.trailer) data.trailer.forEach((t: any) => mapped.push({ id: `trailer_${t.id}`, title: t.title, subtitle: 'Trailer Task', type: 'Task', url: '/trailer' }));
+          if (data.workouts) data.workouts.forEach((w: any) => mapped.push({ id: `workout_${w.id}`, title: w.title, subtitle: w.notes || 'Workout', type: 'Task', url: '/fitness/history' }));
+          if (data.achievements) data.achievements.forEach((a: any) => mapped.push({ id: `ach_${a.id}`, title: a.title, subtitle: a.organization || 'Achievement', type: 'Note', url: '/achievements' }));
+          
+          setResults(mapped);
+        } else {
+          setResults([]);
+        }
       } catch (error) {
         console.error('Search failed:', error);
       } finally {
