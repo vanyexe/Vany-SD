@@ -87,6 +87,7 @@ export default function AnalyticsPage() {
   const { problems, totalSolved, solvedThisWeek, countByTopic } = useDsaProblems()
   const { logs: habitLogs, isDone, loading: habitsLoading, customHabits } = useHabits()
   const { tasks, loading: tasksLoading } = useTasks()
+  const { tasks: trailerTasks, loading: trailerLoading } = useTrailer()
   const { currentPhase, dayNumber } = useSettings()
   
   // Phase 2 new hooks

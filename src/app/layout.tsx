@@ -5,8 +5,6 @@ import AppShell from '@/components/layout/AppShell'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { ToastProvider } from '@/components/providers/ToastProvider'
 import { FocusTimerProvider } from '@/components/providers/FocusTimerProvider'
-import Script from 'next/script'
-
 const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-display',
@@ -65,16 +63,16 @@ export default function RootLayout({
         This runs synchronously before React hydrates.
       */}
       <head>
-        <Script id="theme-script" strategy="beforeInteractive">
-          {`
+        <script id="theme-script" dangerouslySetInnerHTML={{
+          __html: `
             (function() {
               try {
                 var stored = localStorage.getItem('vany-theme') || 'dark';
                 document.documentElement.setAttribute('data-theme', stored);
               } catch(e) {}
             })();
-          `}
-        </Script>
+          `
+        }} />
       </head>
       <body className="bg-ink text-primary font-body antialiased" suppressHydrationWarning>
         <ThemeProvider>
