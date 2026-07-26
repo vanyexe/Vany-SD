@@ -238,14 +238,16 @@ export default function AnalyticsPage() {
   // ── Tasks stats ──
   const taskStats = useMemo(() => {
     const sevenDaysAgo = isoDate(addDays(new Date(), -7))
-    const total = tasks.length
-    const completedThisWeek = tasks.filter(t =>
+    const activeTasks = tasks.filter(t => t.status !== 'archived')
+    
+    const total = activeTasks.length
+    const completedThisWeek = activeTasks.filter(t =>
       t.status === 'done' && t.completed_at && t.completed_at.slice(0, 10) >= sevenDaysAgo
     ).length
-    const overdue = tasks.filter(t =>
+    const overdue = activeTasks.filter(t =>
       t.due_date && t.due_date < today && t.status !== 'done'
     ).length
-    const completionRate = total > 0 ? Math.round((tasks.filter(t => t.status === 'done').length / total) * 100) : 0
+    const completionRate = total > 0 ? Math.round((activeTasks.filter(t => t.status === 'done').length / total) * 100) : 0
     return { total, completedThisWeek, overdue, completionRate }
   }, [tasks, today])
 
