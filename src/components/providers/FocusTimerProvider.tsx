@@ -61,7 +61,9 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
   const getInitialTime = useCallback((type: SessionType, m: Mode) => {
     if (m === '25/5')  return type === 'work' ? 25 * 60 : 5 * 60;
     if (m === '50/10') return type === 'work' ? 50 * 60 : 10 * 60;
-    return type === 'work' ? customWork * 60 : customBreak * 60;
+    const work = Math.max(1, customWork || 1);
+    const brk = Math.max(1, customBreak || 1);
+    return type === 'work' ? work * 60 : brk * 60;
   }, [customWork, customBreak]);
 
   // Fetch today's sessions
@@ -128,14 +130,28 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
     playBeep();
     await saveSession(true);
     setIsActive(false);
-    setSessionType(prev => prev === 'work' ? 'break' : 'work');
-  }, [playBeep, saveSession, sessionType]);
+    setSessionType(prev => {
+      const next = prev === 'work' ? 'break' : 'work';
+      setTimeLeft(getInitialTime(next, mode));
+      return next;
+    });
+  }, [playBeep, saveSession, getInitialTime, mode]);
 
+  // Sync timeLeft when custom inputs change, but ONLY if timer is not active.
+  const prevCustomRef = useRef({ customWork, customBreak, mode });
   useEffect(() => {
-    if (!isActive) {
+    const prev = prevCustomRef.current;
+    if (!isActive && (prev.customWork !== customWork || prev.customBreak !== customBreak)) {
       setTimeLeft(getInitialTime(sessionType, mode));
     }
-  }, [mode, sessionType, customWork, customBreak, getInitialTime]);
+    prevCustomRef.current = { customWork, customBreak, mode };
+  }, [customWork, customBreak, isActive, getInitialTime, sessionType, mode]);
+
+  const changeMode = useCallback((newMode: Mode) => {
+    setMode(newMode);
+    setIsActive(false);
+    setTimeLeft(getInitialTime(sessionType, newMode));
+  }, [getInitialTime, sessionType]);
 
   useEffect(() => {
     if (isActive && timeLeft > 0) {
@@ -162,7 +178,11 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
   const skipSession = async () => {
     if (isActive) await saveSession(false);
     setIsActive(false);
-    setSessionType(prev => prev === 'work' ? 'break' : 'work');
+    setSessionType(prev => {
+      const next = prev === 'work' ? 'break' : 'work';
+      setTimeLeft(getInitialTime(next, mode));
+      return next;
+    });
   };
 
   const resetTimer = () => {
@@ -173,7 +193,7 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
 
   return (
     <FocusTimerContext.Provider value={{
-      mode, setMode,
+      mode, setMode: changeMode,
       sessionType, setSessionType,
       timeLeft, isActive, sessionsCompleted,
       soundEnabled, setSoundEnabled,

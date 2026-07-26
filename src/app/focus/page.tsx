@@ -93,8 +93,12 @@ export default function FocusPage() {
             <label className="text-[10px] text-muted font-mono">Work (min)</label>
             <input
               type="number"
-              value={customWork}
-              onChange={e => setCustomWork(Math.max(1, Math.min(120, Number(e.target.value))))}
+              value={customWork || ''}
+              onChange={e => {
+                const val = e.target.value;
+                if (val === '') setCustomWork(0);
+                else setCustomWork(Math.min(120, parseInt(val, 10) || 0));
+              }}
               className="w-16 bg-ink border border-border rounded-lg p-1.5 text-center text-sm focus:outline-none focus:border-jade"
               min="1" max="120"
             />
@@ -103,8 +107,12 @@ export default function FocusPage() {
             <label className="text-[10px] text-muted font-mono">Break (min)</label>
             <input
               type="number"
-              value={customBreak}
-              onChange={e => setCustomBreak(Math.max(1, Math.min(60, Number(e.target.value))))}
+              value={customBreak || ''}
+              onChange={e => {
+                const val = e.target.value;
+                if (val === '') setCustomBreak(0);
+                else setCustomBreak(Math.min(60, parseInt(val, 10) || 0));
+              }}
               className="w-16 bg-ink border border-border rounded-lg p-1.5 text-center text-sm focus:outline-none focus:border-gold"
               min="1" max="60"
             />
