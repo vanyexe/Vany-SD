@@ -1,4 +1,5 @@
 'use client'
+import { getISTDateString } from '@/lib/dateUtils';
 
 import { useState, useEffect, useMemo } from 'react'
 import { Plus, LayoutGrid, List, Search, Star, Trash2, X, Calendar as CalendarIcon, Loader2, Trophy, AlertTriangle } from 'lucide-react'
@@ -131,7 +132,7 @@ export default function AchievementsPage() {
           title: form.title,
           description: form.description || '',
           category_id: form.category_id || categories[0]?.id,
-          achievement_date: form.achievement_date || new Date().toISOString().slice(0, 10),
+          achievement_date: form.achievement_date || getISTDateString(),
           organization: form.organization || null,
           is_featured: form.is_featured || false,
         })

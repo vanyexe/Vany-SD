@@ -1,3 +1,4 @@
+import { getISTDateString } from '@/lib/dateUtils';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -26,7 +27,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     
     const d = new Date()
     d.setDate(d.getDate() + daysToAdd)
-    const next_review_date = d.toISOString().split('T')[0]
+    const next_review_date = getISTDateString(d)
 
     const { data, error } = await supabase
       .from('dsa_problems')

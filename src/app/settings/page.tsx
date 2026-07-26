@@ -1,4 +1,5 @@
 'use client'
+import { getISTDateString } from '@/lib/dateUtils';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Bell, Monitor, Zap, Database, LogOut, Download, Upload, Trash2, Key, Save, Loader2, Check, X } from 'lucide-react';
@@ -117,7 +118,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `yatra-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `yatra-export-${getISTDateString()}.json`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success('Data exported successfully!');

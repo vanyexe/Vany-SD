@@ -1,3 +1,4 @@
+import { getISTDateString } from '@/lib/dateUtils';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
@@ -112,7 +113,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     title: 'Deleted workout',
     icon: '🗑️',
     color: '#C4675A',
-    event_date: workout?.workout_date || new Date().toISOString().split('T')[0]
+    event_date: workout?.workout_date || getISTDateString()
   };
 
   await supabase.from('timeline_events').insert(timelineEvent);

@@ -1,4 +1,5 @@
 'use client';
+import { getISTDateString } from '@/lib/dateUtils';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export interface JournalEntry {
@@ -41,7 +42,7 @@ export function useJournal() {
     fetchJournal();
   }, [fetchJournal]);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getISTDateString();
   const todayEntry = entries.find(e => e.entry_date === todayStr);
 
   // Real streak calculation
@@ -53,19 +54,19 @@ export function useJournal() {
     expected.setHours(0, 0, 0, 0);
     
     // Allow today or yesterday as starting point
-    const todayIso = expected.toISOString().slice(0, 10);
+    const todayIso = getISTDateString(expected);
     const firstDate = dates[0];
     if (firstDate !== todayIso) {
       // Check if yesterday
       const yesterday = new Date(expected);
       yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayIso = yesterday.toISOString().slice(0, 10);
+      const yesterdayIso = getISTDateString(yesterday);
       if (firstDate !== yesterdayIso) return 0;
       expected = yesterday;
     }
 
     for (const dateStr of dates) {
-      const expectedStr = expected.toISOString().slice(0, 10);
+      const expectedStr = getISTDateString(expected);
       if (dateStr === expectedStr) {
         s++;
         expected.setDate(expected.getDate() - 1);

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import RouteVisualization from '@/components/route/RouteVisualization'
 import { useDsaProblems } from '@/lib/hooks/useDsaProblems'
+import { getISTDateString } from '@/lib/dateUtils';
 import { useHabits } from '@/lib/hooks/useHabits'
 import { useSettings } from '@/lib/hooks/useSettings'
 import { useTrailer } from '@/lib/hooks/useTrailer'
@@ -68,8 +69,7 @@ export default function HomePage() {
     const days = Array.from({length: 7}, (_, i) => {
       const d = new Date()
       d.setDate(d.getDate() - (6 - i))
-      const offset = d.getTimezoneOffset();
-      return new Date(d.getTime() - offset * 60 * 1000).toISOString().split('T')[0]
+      return getISTDateString(d)
     })
     return days.map(date => {
       // count how many of the 5 habits were done on that date
@@ -79,9 +79,7 @@ export default function HomePage() {
 
   const [fitnessToday, setFitnessToday] = useState<{workouts: number; duration: number} | null>(null)
   useEffect(() => {
-    const d = new Date();
-    const offset = d.getTimezoneOffset();
-    const todayStr = new Date(d.getTime() - offset * 60 * 1000).toISOString().split('T')[0];
+    const todayStr = getISTDateString();
     fetch(`/api/fitness/workouts?from=${todayStr}&to=${todayStr}`)
       .then(r => r.ok ? r.json() : {workouts: [], total: 0})
       .then(d => setFitnessToday({ workouts: d.total, duration: d.workouts.reduce((s: number, w: any) => s + (w.duration_min || 0), 0) }))

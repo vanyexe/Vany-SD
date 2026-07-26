@@ -22,6 +22,21 @@ export function useTrailer() {
   const [tasks, setTasks] = useState<TrailerTask[]>([])
   const [activeStage, setActiveStage] = useState<TrailerStage>('pre-prod')
   const [loading, setLoading] = useState(true)
+  const [deadlineDate, setDeadlineDate] = useState<Date | null>(null)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('vany_trailer_deadline')
+    if (saved) {
+      setDeadlineDate(new Date(saved))
+    } else {
+      setDeadlineDate(new Date('2027-06-30'))
+    }
+  }, [])
+
+  const updateDeadline = useCallback((dateStr: string) => {
+    localStorage.setItem('vany_trailer_deadline', dateStr)
+    setDeadlineDate(new Date(dateStr))
+  }, [])
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -88,8 +103,9 @@ export function useTrailer() {
   const inProgress = stageTasks.filter(t => t.status === 'in-progress')
   const done = stageTasks.filter(t => t.status === 'done')
 
-  const deadline = new Date('2027-06-30')
-  const daysToDeadline = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  const daysToDeadline = deadlineDate 
+    ? Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : 0
 
   return {
     tasks,
@@ -103,6 +119,8 @@ export function useTrailer() {
     updateTask,
     deleteTask,
     daysToDeadline,
+    deadlineDate,
+    updateDeadline,
     refetch: fetchTasks,
   }
 }

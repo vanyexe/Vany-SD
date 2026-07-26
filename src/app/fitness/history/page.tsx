@@ -1,4 +1,5 @@
 'use client';
+import { getISTDateString } from '@/lib/dateUtils';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
@@ -88,7 +89,7 @@ export default function WorkoutHistoryPage() {
     for (let i = 83; i >= 0; i--) {
       const d = new Date(ref);
       d.setDate(d.getDate() - i);
-      const ds = d.toISOString().slice(0, 10);
+      const ds = getISTDateString(d);
       const count = workouts.filter(w => w.workout_date === ds).length;
       days.push({ date: ds, count });
     }
@@ -121,7 +122,7 @@ export default function WorkoutHistoryPage() {
                         let colorClass = "bg-surface-raised";
                         if (day.count === 1) colorClass = "bg-jade/40";
                         else if (day.count >= 2) colorClass = "bg-jade";
-                        const isToday = day.date === new Date().toISOString().slice(0, 10);
+                        const isToday = day.date === getISTDateString();
                         return (
                           <div key={day.date} title={`${day.date}: ${day.count} workouts`}
                             className={clsx("w-[14px] h-[14px] rounded-[2px]", colorClass, isToday && "ring-1 ring-jade ring-offset-1 ring-offset-ink")} 

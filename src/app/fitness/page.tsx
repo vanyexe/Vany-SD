@@ -1,4 +1,5 @@
 'use client';
+import { getISTDateString } from '@/lib/dateUtils';
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
@@ -57,7 +58,7 @@ export default function FitnessDashboardPage() {
     loadData();
   }, []);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getISTDateString();
   const todaysWorkout = workouts.find(w => w.workout_date === todayStr);
 
   const streak = useMemo(() => {
@@ -78,7 +79,7 @@ export default function FitnessDashboardPage() {
   const thisWeekWorkouts = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
-    const lastWeekStr = d.toISOString().slice(0, 10);
+    const lastWeekStr = getISTDateString(d);
     return workouts.filter(w => w.workout_date >= lastWeekStr);
   }, [workouts]);
   const thisWeekMinutes = thisWeekWorkouts.reduce((sum, w) => sum + (w.duration_min || 0), 0);
@@ -336,8 +337,8 @@ function ChallengeModal({ onClose, onCreated }: { onClose: () => void; onCreated
           challenge_type: type.toLowerCase(),
           target_value: Number(target),
           unit,
-          start_date: start.toISOString().slice(0, 10),
-          end_date: end.toISOString().slice(0, 10)
+          start_date: getISTDateString(start),
+          end_date: getISTDateString(end)
         })
       });
       const data = await res.json();

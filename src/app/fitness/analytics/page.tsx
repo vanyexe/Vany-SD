@@ -1,4 +1,5 @@
 'use client';
+import { getISTDateString } from '@/lib/dateUtils';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
@@ -36,7 +37,7 @@ export default function FitnessAnalyticsPage() {
 
     const dates = [...new Set(workouts.map(w => w.workout_date))].sort().reverse();
     let streak = 0;
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = getISTDateString();
     if (dates[0] === todayStr || dates[0] === new Date(Date.now() - 86400000).toISOString().slice(0, 10)) {
       streak = 1;
       for (let i = 1; i < dates.length; i++) {

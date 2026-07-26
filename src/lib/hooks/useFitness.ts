@@ -1,4 +1,5 @@
 'use client';
+import { getISTDateString } from '@/lib/dateUtils';
 import { useState, useEffect, useCallback } from 'react';
 
 export interface WorkoutSet {
@@ -103,7 +104,7 @@ export function useFitness() {
     fetchFitnessData();
   }, [fetchFitnessData]);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getISTDateString();
   const todayWorkout = workouts.find(w => (w.workout_date || w.date) === todayStr);
   
   // Real streak calculation

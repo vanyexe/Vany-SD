@@ -1,3 +1,4 @@
+import { getISTDateString } from '@/lib/dateUtils';
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -90,7 +91,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         title: 'Achievement deleted',
         icon: '🗑️',
         color: '#C4675A',
-        event_date: new Date().toISOString().slice(0, 10),
+        event_date: getISTDateString(),
       })
     } catch {} // non-critical
 

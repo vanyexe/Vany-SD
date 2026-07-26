@@ -1,4 +1,5 @@
 'use client'
+import { getISTDateString } from '@/lib/dateUtils';
 
 import React, { useMemo, useEffect, useState } from 'react'
 import {
@@ -18,7 +19,7 @@ import { DSA_TOPICS, HABITS } from '@/lib/data/seed'
 
 /* ── helpers ── */
 function isoDate(d: Date) {
-  return d.toISOString().slice(0, 10)
+  return getISTDateString(d)
 }
 function addDays(d: Date, n: number) {
   const r = new Date(d)

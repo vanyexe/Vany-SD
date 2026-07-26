@@ -1,3 +1,4 @@
+import { getISTDateString } from '@/lib/dateUtils';
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
       lessons_learned, future_improvements, is_featured 
     } = body
 
-    const insertDate = achievement_date || new Date().toISOString().slice(0, 10)
+    const insertDate = achievement_date || getISTDateString()
 
     const { data: achievement, error } = await supabase
       .from('vault_achievements')

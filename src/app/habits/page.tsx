@@ -1,4 +1,5 @@
 'use client';
+import { getISTDateString } from '@/lib/dateUtils';
 
 import { useState, useMemo, useCallback } from 'react';
 import { useHabits } from '@/lib/hooks/useHabits';
@@ -119,7 +120,7 @@ export default function HabitsPage() {
     for (let i = 83; i >= 0; i--) {
       const d = new Date(reference);
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = getISTDateString(d);
       const count = dateStr <= today ? HABITS.filter(h => isDone(h.id, dateStr)).length : 0;
       days.push({ date: dateStr, count });
     }

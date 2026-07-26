@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { useTrailer } from '@/lib/hooks/useTrailer'
@@ -31,7 +31,9 @@ const PRIORITIES = [
 ]
 
 export default function TrailerPage() {
-  const { tasks, activeStage, setActiveStage, todo, inProgress, done, addTask, updateTask, deleteTask, daysToDeadline, loading } = useTrailer()
+  const { tasks, activeStage, setActiveStage, todo, inProgress, done, addTask, updateTask, deleteTask, daysToDeadline, loading, deadlineDate, updateDeadline } = useTrailer()
+
+  const [isEditingDeadline, setIsEditingDeadline] = useState(false)
 
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverCol, setDragOverCol] = useState<TrailerTask['status'] | null>(null)
@@ -99,9 +101,37 @@ export default function TrailerPage() {
             </div>
           </div>
           <div className="card p-3 px-5 flex items-center gap-4 bg-surface-raised border-border">
-            <div className="text-right">
+            <div className="text-right flex flex-col items-end">
               <div className="font-mono text-xs text-muted uppercase tracking-wider mb-1">Time to Deadline</div>
-              <div className="font-mono text-3xl font-bold text-brick tracking-tight leading-none">{daysToDeadline}</div>
+              {isEditingDeadline ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    autoFocus
+                    className="input py-1 px-2 text-sm max-w-[140px]"
+                    defaultValue={deadlineDate ? deadlineDate.toISOString().split('T')[0] : ''}
+                    onBlur={(e) => {
+                      if (e.target.value) updateDeadline(e.target.value)
+                      setIsEditingDeadline(false)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (e.currentTarget.value) updateDeadline(e.currentTarget.value)
+                        setIsEditingDeadline(false)
+                      }
+                      if (e.key === 'Escape') setIsEditingDeadline(false)
+                    }}
+                  />
+                </div>
+              ) : (
+                <div 
+                  className="font-mono text-3xl font-bold text-brick tracking-tight leading-none cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setIsEditingDeadline(true)}
+                  title="Click to change deadline"
+                >
+                  {daysToDeadline}
+                </div>
+              )}
             </div>
             <Timer className="text-brick/50" size={32} />
           </div>

@@ -1,3 +1,4 @@
+import { getISTDateString } from '@/lib/dateUtils';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -17,7 +18,7 @@ export async function GET() {
 
     if (error && error.code === 'PGRST116') {
       // Row doesn't exist yet — create it (first login, Day 1)
-      const today = new Date().toISOString().split('T')[0]
+      const today = getISTDateString()
       const { data: newRow, error: insertError } = await supabase
         .from('user_settings')
         .insert({

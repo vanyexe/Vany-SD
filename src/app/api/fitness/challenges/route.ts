@@ -1,3 +1,4 @@
+import { getISTDateString } from '@/lib/dateUtils';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
@@ -9,7 +10,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getISTDateString();
 
   const { data, error } = await supabase
     .from('fitness_challenges')

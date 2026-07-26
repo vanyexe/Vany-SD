@@ -1,4 +1,5 @@
 'use client';
+import { getISTDateString } from '@/lib/dateUtils';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -21,7 +22,7 @@ export default function LogWorkoutPage() {
 
   // Workout state
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(getISTDateString());
   const [notes, setNotes] = useState('');
   const [mood, setMood] = useState(3);
   const [energy, setEnergy] = useState(3);

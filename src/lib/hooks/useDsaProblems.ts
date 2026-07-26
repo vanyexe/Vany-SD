@@ -1,4 +1,5 @@
 'use client'
+import { getISTDateString } from '@/lib/dateUtils';
 
 import { useState, useEffect, useCallback } from 'react'
 import { DSA_TOPICS } from '@/lib/data/seed'
@@ -87,7 +88,7 @@ export function useDsaProblems() {
     setProblems(prev => prev.filter(p => p.id !== problemId))
   }, [])
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getISTDateString()
 
   const dueForReview = problems.filter(p => p.next_review_date <= today)
 

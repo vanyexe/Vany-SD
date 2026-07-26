@@ -1,3 +1,4 @@
+import { getISTDateString } from '@/lib/dateUtils';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
     description: `${sets ? sets.length : 0} exercises · ${workoutData.duration_min || 0} min`,
     icon: '💪',
     color: '#3FA793',
-    event_date: workoutData.workout_date || new Date().toISOString().split('T')[0]
+    event_date: workoutData.workout_date || getISTDateString()
   };
 
   await supabase.from('timeline_events').insert(timelineEvent);

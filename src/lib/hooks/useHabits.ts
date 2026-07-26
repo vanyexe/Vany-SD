@@ -1,4 +1,5 @@
 'use client'
+import { getISTDateString } from '@/lib/dateUtils';
 
 import { useState, useEffect, useCallback } from 'react'
 import { HABITS } from '@/lib/data/seed'
@@ -22,9 +23,7 @@ export type CustomHabit = {
 }
 
 function getISODate(date: Date): string {
-  const offset = date.getTimezoneOffset();
-  const localDate = new Date(date.getTime() - offset * 60 * 1000);
-  return localDate.toISOString().split('T')[0];
+  return getISTDateString(date);
 }
 
 function getWeekDates(referenceDate: Date): string[] {

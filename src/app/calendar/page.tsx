@@ -1,4 +1,5 @@
 'use client'
+import { getISTDateString } from '@/lib/dateUtils';
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle2, Code2, Flame, X, Plus, Edit2, Trash2 } from 'lucide-react';
@@ -10,9 +11,7 @@ import { useCalendarEvents, CalendarEvent } from '@/lib/hooks/useCalendarEvents'
 import { HABITS } from '@/lib/data/seed';
 
 function isoDate(d: Date) {
-  const offset = d.getTimezoneOffset();
-  const localDate = new Date(d.getTime() - offset * 60 * 1000);
-  return localDate.toISOString().split('T')[0];
+  return getISTDateString(d);
 }
 
 export default function CalendarPage() {

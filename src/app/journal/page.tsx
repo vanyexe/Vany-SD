@@ -1,4 +1,5 @@
 'use client'
+import { getISTDateString } from '@/lib/dateUtils';
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Calendar, ChevronLeft, ChevronRight, Edit3, Save, Flame, Hash, Check, Search, BookOpen, X, Loader2, Lightbulb, Trophy, Zap, Target, MessageSquare } from 'lucide-react'
@@ -44,7 +45,7 @@ function parseMarkdown(text: string) {
 }
 
 export default function JournalPage() {
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayStr = getISTDateString()
   const [selectedDate, setSelectedDate] = useState(todayStr)
   
   const [entry, setEntry] = useState<JournalEntry>({
@@ -67,7 +68,7 @@ export default function JournalPage() {
         setPastEntries(entries)
         // Calculate streak
         const dates = entries.map((e: any) => e.entry_date).sort().reverse()
-        const today = new Date().toISOString().slice(0, 10)
+        const today = getISTDateString()
         const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
         if (!dates.length || (dates[0] !== today && dates[0] !== yesterday)) {
           setJournalStreak(0)
@@ -77,7 +78,7 @@ export default function JournalPage() {
         let expected = new Date(dates[0])
         for (let i = 1; i < dates.length; i++) {
           expected.setDate(expected.getDate() - 1)
-          if (dates[i] === expected.toISOString().slice(0, 10)) s++
+          if (dates[i] === getISTDateString(expected)) s++
           else break
         }
         setJournalStreak(s)
@@ -160,7 +161,7 @@ export default function JournalPage() {
   const navigateDay = (direction: -1 | 1) => {
     const d = new Date(selectedDate)
     d.setDate(d.getDate() + direction)
-    setSelectedDate(d.toISOString().slice(0, 10))
+    setSelectedDate(getISTDateString(d))
   }
 
   const handleTagInput = (e: React.KeyboardEvent<HTMLInputElement>) => {

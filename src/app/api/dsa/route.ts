@@ -1,10 +1,11 @@
+import { getISTDateString } from '@/lib/dateUtils';
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr)
   d.setDate(d.getDate() + days)
-  return d.toISOString().split('T')[0]
+  return getISTDateString(d)
 }
 
 // GET /api/dsa — all problems for user
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'title, topic_id, difficulty are required' }, { status: 400 })
   }
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getISTDateString()
   const next_review_date = addDays(today, 7)
 
   const { data, error } = await supabase
