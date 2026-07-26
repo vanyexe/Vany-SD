@@ -58,11 +58,17 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const sessionStartRef = useRef<Date | null>(null);
 
-  const getInitialTime = useCallback((type: SessionType, m: Mode) => {
+  // Keep track of current state in a ref to avoid dependency churn in callbacks
+  const stateRef = useRef({ sessionType, mode, timeLeft, taskLabel, customWork, customBreak });
+  useEffect(() => {
+    stateRef.current = { sessionType, mode, timeLeft, taskLabel, customWork, customBreak };
+  }, [sessionType, mode, timeLeft, taskLabel, customWork, customBreak]);
+
+  const getInitialTime = useCallback((type: SessionType, m: Mode, cw?: number, cb?: number) => {
     if (m === '25/5')  return type === 'work' ? 25 * 60 : 5 * 60;
     if (m === '50/10') return type === 'work' ? 50 * 60 : 10 * 60;
-    const work = Math.max(1, customWork || 1);
-    const brk = Math.max(1, customBreak || 1);
+    const work = Math.max(1, (cw !== undefined ? cw : customWork) || 1);
+    const brk = Math.max(1, (cb !== undefined ? cb : customBreak) || 1);
     return type === 'work' ? work * 60 : brk * 60;
   }, [customWork, customBreak]);
 
@@ -101,15 +107,16 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
     } catch {}
   }
 
-  async function saveSession(completed: boolean) {
-    const totalTime = getInitialTime(sessionType, mode);
-    const actualMin = Math.round((totalTime - timeLeft) / 60);
+  const saveSession = useCallback(async (completed: boolean) => {
+    const { sessionType: st, mode: m, timeLeft: tl, taskLabel: lbl, customWork: cw, customBreak: cb } = stateRef.current;
+    const totalTime = getInitialTime(st, m, cw, cb);
+    const actualMin = Math.round((totalTime - tl) / 60);
     try {
       const res = await fetch('/api/focus-sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          task_label: taskLabel.trim() || null,
+          task_label: lbl.trim() || null,
           duration_min: Math.round(totalTime / 60),
           actual_min: actualMin,
           completed,
@@ -120,22 +127,28 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
         setSessions(prev => [session, ...prev]);
         if (completed) {
           setSessionsCompleted(p => p + 1);
-          toast.success(`${sessionType === 'work' ? 'Focus' : 'Break'} session complete!`);
+          toast.success(`${st === 'work' ? 'Focus' : 'Break'} session complete!`);
         }
+      } else {
+        console.error('Failed to save session:', await res.text());
       }
-    } catch {}
-  }
+    } catch (err) {
+      console.error('Error saving session:', err);
+    }
+  }, [getInitialTime, toast]);
 
   const handleSessionComplete = useCallback(async () => {
+    setIsActive(false); // Stop immediately so useEffect doesn't trigger again
     playBeep();
     await saveSession(true);
-    setIsActive(false);
+    
     setSessionType(prev => {
+      const { mode: currentMode, customWork: cw, customBreak: cb } = stateRef.current;
       const next = prev === 'work' ? 'break' : 'work';
-      setTimeLeft(getInitialTime(next, mode));
+      setTimeLeft(getInitialTime(next, currentMode, cw, cb));
       return next;
     });
-  }, [playBeep, saveSession, getInitialTime, mode]);
+  }, [playBeep, saveSession, getInitialTime]);
 
   // Sync timeLeft when custom inputs change, but ONLY if timer is not active.
   const prevCustomRef = useRef({ customWork, customBreak, mode });
@@ -170,26 +183,28 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
     }
   }, [isActive]);
 
-  const toggleTimer = () => {
+  const toggleTimer = useCallback(() => {
     if (!isActive) sessionStartRef.current = new Date();
     setIsActive(p => !p);
-  };
+  }, [isActive]);
 
-  const skipSession = async () => {
+  const skipSession = useCallback(async () => {
     if (isActive) await saveSession(false);
     setIsActive(false);
     setSessionType(prev => {
+      const { mode: currentMode, customWork: cw, customBreak: cb } = stateRef.current;
       const next = prev === 'work' ? 'break' : 'work';
-      setTimeLeft(getInitialTime(next, mode));
+      setTimeLeft(getInitialTime(next, currentMode, cw, cb));
       return next;
     });
-  };
+  }, [isActive, saveSession, getInitialTime]);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setIsActive(false);
-    setTimeLeft(getInitialTime(sessionType, mode));
+    const { sessionType: st, mode: currentMode, customWork: cw, customBreak: cb } = stateRef.current;
+    setTimeLeft(getInitialTime(st, currentMode, cw, cb));
     sessionStartRef.current = null;
-  };
+  }, [getInitialTime]);
 
   return (
     <FocusTimerContext.Provider value={{
