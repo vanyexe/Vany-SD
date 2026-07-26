@@ -32,7 +32,7 @@ export default function HomePage() {
   const router = useRouter()
   const { settings, loading: settingsLoading, dayNumber, currentPhase, phaseProgress } = useSettings()
   const { dueForReview, solvedThisWeek, totalSolved, loading: dsaLoading } = useDsaProblems()
-  const { isDone, toggle, today, getStreak, loading: habitsLoading } = useHabits()
+  const { isDone, toggle, today, getStreak, loading: habitsLoading, customHabits } = useHabits()
   const { daysToDeadline } = useTrailer()
   const { tasks, createTask, updateTask, loading: tasksLoading } = useTasks()
 
@@ -44,7 +44,12 @@ export default function HomePage() {
 
   const currentPhaseData = PHASES[currentPhase - 1] ?? PHASES[0]
 
-  const todayChecklist = HABITS.map(h => ({
+  const allHabits = useMemo(() => [
+    ...HABITS,
+    ...(customHabits || []).map(ch => ({ id: ch.id, name: ch.name, icon: ch.icon || '⭐' }))
+  ], [customHabits]);
+
+  const todayChecklist = allHabits.map(h => ({
     habit: h,
     done: isDone(h.id, today),
   }))
@@ -76,13 +81,13 @@ export default function HomePage() {
       }
     })
     return days.map(day => {
-      // count how many of the 5 habits were done on that date
+      // count how many of the habits were done on that date
       return {
         label: day.label,
-        count: HABITS.filter(h => isDone(h.id, day.dateStr)).length
+        count: allHabits.filter(h => isDone(h.id, day.dateStr)).length
       }
     })
-  }, [isDone])
+  }, [isDone, allHabits])
 
   const [fitnessToday, setFitnessToday] = useState<{workouts: number; duration: number} | null>(null)
   useEffect(() => {
@@ -153,7 +158,7 @@ export default function HomePage() {
                 </h2>
                 <div className="flex items-center gap-3">
                   <div className="text-sm font-mono text-secondary">
-                    {habitsLoading ? '...' : String(doneCount) + '/5 done'}
+                    {habitsLoading ? '...' : String(doneCount) + '/' + allHabits.length + ' done'}
                   </div>
                   <div className="w-10 h-10 rounded-full border-2 border-surface-raised flex items-center justify-center relative">
                     <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
@@ -383,10 +388,11 @@ export default function HomePage() {
                 {weeklyData.map((data, idx) => {
                   const val = data.count
                   const isToday = idx === 6
-                  const height = (val / 5) * 100
+                  const maxCount = allHabits.length || 5
+                  const height = (val / maxCount) * 100
                   let colorClass = 'fill-surface-raised'
-                  if (val === 5) colorClass = 'fill-jade'
-                  else if (val >= 3) colorClass = 'fill-gold'
+                  if (val === maxCount && maxCount > 0) colorClass = 'fill-jade'
+                  else if (val >= Math.ceil(maxCount / 2) && val > 0) colorClass = 'fill-gold'
                   else if (val > 0) colorClass = 'fill-muted/50'
 
                   return (
@@ -399,7 +405,7 @@ export default function HomePage() {
                           />
                         </svg>
                         <div className="absolute -top-6 bg-ink border border-border text-[10px] text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity font-mono pointer-events-none">
-                          {val}/5
+                          {val}/{maxCount}
                         </div>
                       </div>
                       <span className={clsx("text-xs font-mono", isToday ? "text-primary font-bold" : "text-muted")}>{data.label}</span>
