@@ -36,6 +36,7 @@ export default function GoalsPage() {
   const [deleteGoalId, setDeleteGoalId] = useState<string | null>(null)
   const [addMilestoneText, setAddMilestoneText] = useState('')
   const [addingMilestone, setAddingMilestone] = useState(false)
+  const [editingGoalId, setEditingGoalId] = useState<string | null>(null)
 
   // Form state
   const [form, setForm] = useState<Partial<Goal>>({
@@ -56,6 +57,37 @@ export default function GoalsPage() {
     setSyncing(false)
   }
 
+  const openNewGoal = () => {
+    setEditingGoalId(null)
+    setForm({ category: 'personal', priority: 'medium', icon: '', color: COLORS[0], auto_track: false })
+    setIsAddModalOpen(true)
+  }
+
+  const closeGoalModal = () => {
+    setIsAddModalOpen(false)
+    setEditingGoalId(null)
+    setForm({ category: 'personal', priority: 'medium', icon: '', color: COLORS[0], auto_track: false })
+  }
+
+  const handleEditClick = () => {
+    if (!selectedGoal) return
+    setEditingGoalId(selectedGoal.id)
+    setForm({
+      title: selectedGoal.title,
+      description: selectedGoal.description,
+      category: selectedGoal.category,
+      priority: selectedGoal.priority,
+      target_date: selectedGoal.target_date || undefined,
+      icon: selectedGoal.icon,
+      color: selectedGoal.color,
+      auto_track: selectedGoal.auto_track,
+      track_module: selectedGoal.track_module,
+      track_metric: selectedGoal.track_metric,
+      track_target: selectedGoal.track_target
+    })
+    setIsAddModalOpen(true)
+  }
+
   const handleSave = async () => {
     if (!form.title?.trim()) return;
     const payload = {
@@ -66,8 +98,6 @@ export default function GoalsPage() {
       target_date: form.target_date || undefined,
       icon: form.icon || '',
       color: form.color || COLORS[0],
-      status: 'active' as const,
-      progress_pct: 0,
       auto_track: form.auto_track || false,
       track_module: form.track_module || undefined,
       track_metric: form.track_metric || undefined,
@@ -75,14 +105,19 @@ export default function GoalsPage() {
     };
 
     try {
-      await createGoal(payload);
-      toast.success('Goal created!');
+      if (editingGoalId) {
+        await updateGoal(editingGoalId, payload);
+        toast.success('Goal updated!');
+        setSelectedGoal(prev => prev && prev.id === editingGoalId ? { ...prev, ...payload } : prev);
+      } else {
+        await createGoal({ ...payload, status: 'active', progress_pct: 0 });
+        toast.success('Goal created!');
+      }
     } catch {
-      toast.error('Failed to create goal');
+      toast.error(`Failed to ${editingGoalId ? 'update' : 'create'} goal`);
     }
 
-    setIsAddModalOpen(false)
-    setForm({ category: 'personal', priority: 'medium', icon: '', color: COLORS[0], auto_track: false })
+    closeGoalModal()
   }
 
   const handleToggleMilestone = async (goalId: string, milestoneId: string) => {
@@ -166,7 +201,7 @@ export default function GoalsPage() {
             </h1>
             <p className="text-secondary mt-2">Long-term objectives with intelligent progress tracking</p>
           </div>
-          <button onClick={() => setIsAddModalOpen(true)} className="btn btn-jade">
+          <button onClick={openNewGoal} className="btn btn-jade">
             <Plus size={16} /> New Goal
           </button>
         </div>
@@ -205,7 +240,7 @@ export default function GoalsPage() {
               <Target size={48} className="text-muted mb-4 opacity-50" />
               <h3 className="font-display font-medium text-xl text-primary mb-2">No goals yet</h3>
               <p className="text-secondary mb-6 max-w-md">Goals help you track long-term objectives with intelligent progress tracking.</p>
-              <button onClick={() => setIsAddModalOpen(true)} className="btn btn-jade">
+              <button onClick={openNewGoal} className="btn btn-jade">
                 Create your first goal
               </button>
             </div>
@@ -288,7 +323,7 @@ export default function GoalsPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="btn btn-icon-sm btn-ghost"><Edit3 size={16}/></button>
+                  <button onClick={handleEditClick} className="btn btn-icon-sm btn-ghost hover:text-jade"><Edit3 size={16}/></button>
                   <button onClick={() => setDeleteGoalId(selectedGoal.id)} className="btn btn-icon-sm btn-ghost hover:text-brick" title="Delete goal"><Trash2 size={16}/></button>
                   <button onClick={() => setSelectedGoal(null)} className="btn btn-icon-sm btn-ghost ml-2"><X size={16}/></button>
                 </div>
@@ -431,13 +466,13 @@ export default function GoalsPage() {
         </div>
       )}
 
-      {/* Add Goal Modal */}
+      {/* Add/Edit Goal Modal */}
       {isAddModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsAddModalOpen(false)}>
+        <div className="modal-overlay" onClick={closeGoalModal}>
           <div className="modal-content modal-md p-6" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="font-display text-xl text-primary font-bold">New Goal</h2>
-              <button onClick={() => setIsAddModalOpen(false)} className="btn btn-icon-sm btn-ghost"><X size={16}/></button>
+              <h2 className="font-display text-xl text-primary font-bold">{editingGoalId ? 'Edit Goal' : 'New Goal'}</h2>
+              <button onClick={closeGoalModal} className="btn btn-icon-sm btn-ghost"><X size={16}/></button>
             </div>
 
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -540,8 +575,8 @@ export default function GoalsPage() {
             </div>
 
             <div className="flex justify-end gap-3 mt-6 pt-4">
-              <button onClick={() => setIsAddModalOpen(false)} className="btn btn-ghost">Cancel</button>
-              <button onClick={handleSave} disabled={!form.title} className="btn btn-jade">Create Goal</button>
+              <button onClick={closeGoalModal} className="btn btn-ghost">Cancel</button>
+              <button onClick={handleSave} disabled={!form.title} className="btn btn-jade">{editingGoalId ? 'Save Changes' : 'Create Goal'}</button>
             </div>
           </div>
         </div>
