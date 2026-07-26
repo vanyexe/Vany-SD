@@ -653,7 +653,7 @@ export default function AnalyticsPage() {
           </section>
 
           {/* Tasks stats */}
-          <section id="task-stats" className="card-raised rounded-xl p-6">
+          <section id="task-stats" className="card-raised rounded-xl p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-5">
               <CheckCircle2 size={16} style={{ color: 'var(--color-gold)' }} />
               <h2 className="text-sm font-semibold text-primary">Task Overview</h2>
@@ -674,9 +674,9 @@ export default function AnalyticsPage() {
                 linkLabel="Add Tasks"
               />
             ) : (
-              <div className="space-y-5">
+              <div className="flex-1 flex flex-col justify-center">
                 {/* Donut + stats */}
-                <div className="flex items-center gap-6">
+                <div className="flex items-center justify-center gap-8">
                   <div className="relative flex-shrink-0">
                     <Donut pct={taskStats.completionRate} size={96} stroke={10} color="var(--color-gold)" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -684,7 +684,7 @@ export default function AnalyticsPage() {
                       <span className="font-mono text-[9px] text-muted">done</span>
                     </div>
                   </div>
-                  <div className="space-y-4 flex-1">
+                  <div className="space-y-4 w-full max-w-[180px]">
                     {[
                       { label: 'Total Tasks',       val: taskStats.total,              color: 'var(--color-primary)' },
                       { label: 'Done This Week',     val: taskStats.completedThisWeek, color: 'var(--color-jade)' },
@@ -705,7 +705,7 @@ export default function AnalyticsPage() {
         {/* ── Phase 2 New Sections: Fitness, Goals, Achievements ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           {/* Fitness Stats */}
-          <section id="fitness-stats" className="card-raised rounded-xl p-6">
+          <section id="fitness-stats" className="card-raised rounded-xl p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-5">
               <Activity size={16} style={{ color: 'var(--color-jade)' }} />
               <h2 className="text-sm font-semibold text-primary">Fitness</h2>
@@ -715,7 +715,7 @@ export default function AnalyticsPage() {
             ) : workouts.length === 0 ? (
               <EmptyCard icon={Activity} title="No workouts" desc="Start logging your fitness." href="/fitness" linkLabel="Log Workout" />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 flex-1 flex flex-col">
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   <div>
                     <div className="text-[10px] font-mono text-muted uppercase">Total Workouts</div>
@@ -726,7 +726,7 @@ export default function AnalyticsPage() {
                     <div className="text-xl font-mono text-primary">{Math.round(workouts.reduce((acc, w) => acc + (w.duration_min || 0), 0) / 60)}h</div>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 mt-auto">
                   <div className="text-xs font-mono text-muted">Recent Workouts</div>
                   {workouts.slice(0, 3).map(w => (
                     <div key={w.id} className="flex justify-between items-center text-sm p-2 rounded bg-surface border border-border">
@@ -740,7 +740,7 @@ export default function AnalyticsPage() {
           </section>
 
           {/* Goals Stats */}
-          <section id="goals-stats" className="card-raised rounded-xl p-6">
+          <section id="goals-stats" className="card-raised rounded-xl p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-5">
               <Target size={16} style={{ color: 'var(--color-sky, #5B9BD4)' }} />
               <h2 className="text-sm font-semibold text-primary">Goals Progress</h2>
@@ -750,16 +750,16 @@ export default function AnalyticsPage() {
             ) : goals.length === 0 ? (
               <EmptyCard icon={Target} title="No goals set" desc="Set long-term objectives." href="/goals" linkLabel="Set Goals" />
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-6 mb-4">
+              <div className="flex-1 flex flex-col justify-between">
+                <div className="flex items-center justify-center gap-6 mb-4">
                   <div className="relative flex-shrink-0">
-                    <Donut pct={goals.filter(g => g.status === 'completed').length / goals.length * 100 || 0} size={80} stroke={8} color="var(--color-sky, #5B9BD4)" />
+                    <Donut pct={goals.filter(g => g.status === 'completed').length / (goals.length || 1) * 100 || 0} size={80} stroke={8} color="var(--color-sky, #5B9BD4)" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="font-mono font-bold text-primary">{goals.filter(g => g.status === 'completed').length}</span>
                       <span className="font-mono text-[8px] text-muted uppercase">done</span>
                     </div>
                   </div>
-                  <div className="space-y-4 flex-1">
+                  <div className="space-y-4 w-full max-w-[150px]">
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-secondary">Active</span>
                       <span className="font-mono text-sm">{goals.filter(g => g.status === 'active').length}</span>
@@ -771,7 +771,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 {goals.filter(g => g.status === 'active').length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 mt-auto">
                     <div className="text-xs font-mono text-muted">Active Goals</div>
                     {goals.filter(g => g.status === 'active').slice(0, 3).map(g => (
                       <div key={g.id} className="text-sm p-2 rounded bg-surface border border-border">
@@ -789,7 +789,7 @@ export default function AnalyticsPage() {
           </section>
 
           {/* Achievements Stats */}
-          <section id="achievements-stats" className="card-raised rounded-xl p-6">
+          <section id="achievements-stats" className="card-raised rounded-xl p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-5">
               <Trophy size={16} style={{ color: 'var(--color-gold)' }} />
               <h2 className="text-sm font-semibold text-primary">Vault Achievements</h2>
@@ -799,14 +799,14 @@ export default function AnalyticsPage() {
             ) : totalAchievements === 0 ? (
               <EmptyCard icon={Trophy} title="No achievements" desc="Document your major wins." href="/vault" linkLabel="Open Vault" />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 flex-1 flex flex-col">
                 <div className="flex justify-between items-end mb-4">
                   <div>
                     <div className="text-[10px] font-mono text-muted uppercase">Total Earned</div>
                     <div className="text-3xl font-mono font-bold" style={{ color: 'var(--color-gold)' }}>{totalAchievements}</div>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 mt-auto">
                   <div className="text-xs font-mono text-muted">Recent Achievements</div>
                   {achievements.slice(0, 3).map(a => (
                     <div key={a.id} className="flex gap-3 items-center p-2 rounded bg-surface border border-border">
