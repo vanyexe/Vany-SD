@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import RouteVisualization from '@/components/route/RouteVisualization'
@@ -13,7 +13,7 @@ import { useTasks } from '@/lib/hooks/useTasks'
 import { HABITS, SAMPLE_QUOTES, PHASES } from '@/lib/data/seed'
 import {
   CheckCircle2, Circle, Flame, BookOpen, Timer, ChevronRight, Target, Loader2, Plus, Zap, Check, ListTodo, Presentation, PlaySquare, CalendarDays, Dumbbell, Award,
-  Star, Music, Coffee, Moon, Sun, Leaf, Wind, Droplets, Pencil, Heart, Brain
+  Star, Music, Coffee, Moon, Sun, Leaf, Wind, Droplets, Pencil, Heart, Brain, Bell, AlertCircle, CheckCheck, X
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -112,6 +112,62 @@ export default function HomePage() {
       .catch(() => {})
   }, [])
 
+  // ── Real Notifications ──
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
+
+  const notifications = useMemo(() => {
+    const items: { id: string; type: 'warn' | 'info' | 'success'; message: string; href: string }[] = []
+
+    // Overdue tasks
+    const overdueTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived' && t.due_date && t.due_date < getISTDateString())
+    if (overdueTasks.length > 0) {
+      items.push({ id: 'overdue-tasks', type: 'warn', message: `${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''} — check your agenda`, href: '/tasks' })
+    }
+
+    // Pending (non-done) tasks
+    const pendingTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived')
+    if (pendingTasks.length > 0) {
+      items.push({ id: 'pending-tasks', type: 'info', message: `${pendingTasks.length} task${pendingTasks.length > 1 ? 's' : ''} still to complete today`, href: '/tasks' })
+    }
+
+    // DSA reviews due
+    if (dueForReview.length > 0) {
+      items.push({ id: 'dsa-review', type: 'warn', message: `${dueForReview.length} DSA problem${dueForReview.length > 1 ? 's' : ''} due for review`, href: '/dsa' })
+    }
+
+    // Incomplete habits
+    const remainingHabits = todayChecklist.filter(t => !t.done)
+    if (remainingHabits.length > 0 && !habitsLoading) {
+      items.push({ id: 'habits', type: 'info', message: `${remainingHabits.length} habit${remainingHabits.length > 1 ? 's' : ''} not done today`, href: '/habits' })
+    }
+
+    // No workout today
+    if (fitnessToday !== null && fitnessToday.workouts === 0) {
+      items.push({ id: 'no-workout', type: 'info', message: `No workout logged today — stay active!`, href: '/fitness/log' })
+    }
+
+    // All clear
+    if (items.length === 0 && !habitsLoading && !tasksLoading) {
+      items.push({ id: 'all-clear', type: 'success', message: `You're all caught up! Great work today 🎉`, href: '/' })
+    }
+
+    return items
+  }, [tasks, dueForReview, todayChecklist, fitnessToday, habitsLoading, tasksLoading])
+
+  const unreadCount = notifications.filter(n => n.type !== 'success').length
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
   if (settingsLoading) {
     return (
       <div className="min-h-dvh bg-ink flex items-center justify-center">
@@ -127,7 +183,10 @@ export default function HomePage() {
         {/* MOBILE STICKY HEADER */}
         <div className="md:hidden sticky top-0 z-10 bg-ink/90 backdrop-blur-md py-3 border-b border-border flex justify-between items-center -mx-5 px-5">
            <span className="font-mono text-sm text-gold">Day {dayNumber}</span>
-           <span className="badge badge-jade text-xs px-2 py-0.5">Phase {currentPhase}</span>
+           <div className="flex items-center gap-3">
+             <span className="badge badge-jade text-xs px-2 py-0.5">Phase {currentPhase}</span>
+             <NotifBell count={unreadCount} open={notifOpen} onToggle={() => setNotifOpen(v => !v)} notifRef={notifRef} notifications={notifications} />
+           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -137,19 +196,25 @@ export default function HomePage() {
             
             {/* 1. Hero Header */}
             <div className="space-y-4 animate-slide-in-up">
-              <div>
-                <h1 className="font-display text-4xl md:text-5xl font-semibold text-primary tracking-tight">
-                  {greeting}, {settings?.display_name || 'Vansh'}
-                </h1>
-                <p className="text-secondary text-lg mt-3 font-mono flex items-center gap-3">
-                  <span>Day <span className="text-gold font-bold">{dayNumber}</span> of your journey</span>
-                  <span className="opacity-40">&bull;</span>
-                  <span className="badge badge-jade px-2.5 py-1 text-sm bg-jade/10 text-jade border-jade/20 border flex items-center gap-2 font-medium">
-                    <span>Phase {String(currentPhase).padStart(2, '0')}</span>
-                    <span className="opacity-50">|</span>
-                    <span>{currentPhaseData.title}</span>
-                  </span>
-                </p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="font-display text-4xl md:text-5xl font-semibold text-primary tracking-tight">
+                    {greeting}, {settings?.display_name || 'Vansh'}
+                  </h1>
+                  <p className="text-secondary text-lg mt-3 font-mono flex items-center gap-3">
+                    <span>Day <span className="text-gold font-bold">{dayNumber}</span> of your journey</span>
+                    <span className="opacity-40">&bull;</span>
+                    <span className="badge badge-jade px-2.5 py-1 text-sm bg-jade/10 text-jade border-jade/20 border flex items-center gap-2 font-medium">
+                      <span>Phase {String(currentPhase).padStart(2, '0')}</span>
+                      <span className="opacity-50">|</span>
+                      <span>{currentPhaseData.title}</span>
+                    </span>
+                  </p>
+                </div>
+                {/* Desktop notification bell */}
+                <div className="hidden md:block">
+                  <NotifBell count={unreadCount} open={notifOpen} onToggle={() => setNotifOpen(v => !v)} notifRef={notifRef} notifications={notifications} />
+                </div>
               </div>
               <div className="w-full bg-surface-raised h-2 rounded-full overflow-hidden">
                 <div className="bg-gradient-to-r from-jade to-gold h-full rounded-full transition-all duration-1000" style={{ width: String(phaseProgress * 100) + '%' }} />
@@ -473,4 +538,57 @@ function StatCard({ label, value, unit, icon, color, href }: {
   )
 }
 
+function NotifBell({
+  count, open, onToggle, notifRef, notifications
+}: {
+  count: number
+  open: boolean
+  onToggle: () => void
+  notifRef: React.RefObject<HTMLDivElement>
+  notifications: { id: string; type: 'warn' | 'info' | 'success'; message: string; href: string }[]
+}) {
+  const typeStyle = {
+    warn: { icon: <AlertCircle size={13} className="text-brick shrink-0" />, ring: 'border-brick/20 bg-brick/5' },
+    info: { icon: <Bell size={13} className="text-gold shrink-0" />, ring: 'border-border bg-surface-raised' },
+    success: { icon: <CheckCheck size={13} className="text-jade shrink-0" />, ring: 'border-jade/20 bg-jade/5' },
+  }
 
+  return (
+    <div className="relative" ref={notifRef}>
+      <button
+        onClick={onToggle}
+        className="relative w-8 h-8 rounded-full flex items-center justify-center bg-surface-raised border border-border hover:border-jade/40 transition-colors"
+        aria-label="Notifications"
+      >
+        <Bell size={15} className="text-secondary" />
+        {count > 0 && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-brick text-ink text-[9px] font-bold flex items-center justify-center font-mono">
+            {count > 9 ? '9+' : count}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-10 z-50 w-80 bg-surface-raised border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <span className="text-sm font-semibold text-primary">Notifications</span>
+            <span className="text-[10px] font-mono text-muted">{new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+          </div>
+          <div className="divide-y divide-border max-h-72 overflow-y-auto">
+            {notifications.map(n => (
+              <Link
+                key={n.id}
+                href={n.href}
+                className={clsx('flex items-start gap-3 px-4 py-3 hover:bg-surface transition-colors', typeStyle[n.type].ring)}
+                onClick={onToggle}
+              >
+                <span className="mt-0.5">{typeStyle[n.type].icon}</span>
+                <span className="text-xs text-secondary leading-relaxed">{n.message}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
