@@ -620,7 +620,7 @@ export default function AnalyticsPage() {
                 linkLabel="Log a Problem"
               />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {topTopics.map(topic => {
                   const pct = Math.min(Math.round((topic.solved / topic.targetCount) * 100), 100)
                   return (
@@ -629,7 +629,7 @@ export default function AnalyticsPage() {
                         <span className="text-sm text-secondary">{topic.name}</span>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs text-muted">{topic.solved}/{topic.targetCount}</span>
-                          <span className={clsx('font-mono text-[10px] px-1.5 py-0.5 rounded', pct >= 100 ? 'text-jade bg-jade-dim' : 'text-muted bg-surface-raised')}>{pct}%</span>
+                          <span className={clsx('font-mono text-[10px] px-1.5 py-0.5 rounded', pct >= 100 ? 'text-jade bg-jade-dim' : 'text-secondary bg-surface')}>{pct}%</span>
                         </div>
                       </div>
                       <div className="progress-bar" style={{ height: 6 }}>
@@ -638,7 +638,7 @@ export default function AnalyticsPage() {
                           style={{
                             width: `${pct}%`,
                             height: '100%',
-                            background: pct >= 100 ? 'var(--color-jade)' : pct >= 50 ? 'var(--color-gold)' : 'var(--color-brick-dim)',
+                            background: pct >= 100 ? 'var(--color-jade)' : pct >= 50 ? 'var(--color-gold)' : 'var(--color-brick)',
                             transition: 'width 1s ease',
                           }}
                         />
@@ -682,14 +682,14 @@ export default function AnalyticsPage() {
                       <span className="font-mono text-[9px] text-muted">done</span>
                     </div>
                   </div>
-                  <div className="space-y-4 flex-1">
+                  <div className="space-y-4 flex-1 max-w-[200px]">
                     {[
                       { label: 'Total Tasks',       val: taskStats.total,              color: 'var(--color-primary)' },
                       { label: 'Done This Week',     val: taskStats.completedThisWeek, color: 'var(--color-jade)' },
                       { label: 'Overdue',            val: taskStats.overdue,           color: taskStats.overdue > 0 ? 'var(--color-brick)' : 'var(--color-muted)' },
                     ].map(row => (
-                      <div key={row.label} className="flex items-center gap-4">
-                        <span className="text-xs text-secondary w-28">{row.label}</span>
+                      <div key={row.label} className="flex justify-between items-center">
+                        <span className="text-xs text-secondary">{row.label}</span>
                         <span className="font-mono text-sm font-semibold" style={{ color: row.color }}>{row.val}</span>
                       </div>
                     ))}
@@ -717,11 +717,11 @@ export default function AnalyticsPage() {
                 <div className="flex justify-between items-end mb-4">
                   <div>
                     <div className="text-[10px] font-mono text-muted uppercase">Total Workouts</div>
-                    <div className="text-3xl font-display font-bold text-primary">{workouts.length}</div>
+                    <div className="text-3xl font-mono font-bold text-primary">{workouts.length}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-[10px] font-mono text-muted uppercase">Hours Logged</div>
-                    <div className="text-xl font-display text-primary">{Math.round(workouts.reduce((acc, w) => acc + (w.duration_min || 0), 0) / 60)}h</div>
+                    <div className="text-xl font-mono text-primary">{Math.round(workouts.reduce((acc, w) => acc + (w.duration_min || 0), 0) / 60)}h</div>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -757,29 +757,31 @@ export default function AnalyticsPage() {
                       <span className="font-mono text-[8px] text-muted uppercase">done</span>
                     </div>
                   </div>
-                  <div className="space-y-4 flex-1">
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-secondary w-28">Active</span>
+                  <div className="space-y-4 flex-1 max-w-[200px]">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-secondary">Active</span>
                       <span className="font-mono text-sm">{goals.filter(g => g.status === 'active').length}</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-secondary w-28">Avg Progress</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-secondary">Avg Progress</span>
                       <span className="font-mono text-sm">{Math.round(goals.filter(g => g.status === 'active').reduce((acc, g) => acc + g.progress_pct, 0) / (goals.filter(g => g.status === 'active').length || 1))}%</span>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="text-xs font-mono text-muted">Active Goals</div>
-                  {goals.filter(g => g.status === 'active').slice(0, 3).map(g => (
-                    <div key={g.id} className="text-sm p-2 rounded bg-surface border border-border">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-medium truncate">{g.title}</span>
-                        <span className="font-mono text-xs" style={{ color: g.color }}>{g.progress_pct}%</span>
+                {goals.filter(g => g.status === 'active').length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-mono text-muted">Active Goals</div>
+                    {goals.filter(g => g.status === 'active').slice(0, 3).map(g => (
+                      <div key={g.id} className="text-sm p-2 rounded bg-surface border border-border">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium truncate">{g.title}</span>
+                          <span className="font-mono text-xs" style={{ color: g.color }}>{g.progress_pct}%</span>
+                        </div>
+                        <div className="progress-bar"><div className="progress-fill" style={{ width: `${g.progress_pct}%`, backgroundColor: g.color }} /></div>
                       </div>
-                      <div className="progress-bar"><div className="progress-fill" style={{ width: `${g.progress_pct}%`, backgroundColor: g.color }} /></div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -799,7 +801,7 @@ export default function AnalyticsPage() {
                 <div className="flex justify-between items-end mb-4">
                   <div>
                     <div className="text-[10px] font-mono text-muted uppercase">Total Earned</div>
-                    <div className="text-3xl font-display font-bold text-gold">{totalAchievements}</div>
+                    <div className="text-3xl font-mono font-bold" style={{ color: 'var(--color-gold)' }}>{totalAchievements}</div>
                   </div>
                 </div>
                 <div className="space-y-2">
