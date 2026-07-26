@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useTrailer } from '@/lib/hooks/useTrailer'
 import { useSettings } from '@/lib/hooks/useSettings'
 import type { TrailerStage, TrailerTask } from '@/lib/hooks/useTrailer'
@@ -78,7 +78,27 @@ export default function TrailerPage() {
     setDragOverCol(null)
   }
 
-  const currentStageIndex = STAGES.findIndex(s => s.id === activeStage)
+  const stageStats = useMemo(() => {
+    const stats: Record<TrailerStage, { isPassed: boolean; isEnabled: boolean }> = {} as any
+    let previousPassed = true
+
+    STAGES.forEach((stage) => {
+      const stageTasks = tasks.filter(t => t.stage === stage.id)
+      const total = stageTasks.length
+      const done = stageTasks.filter(t => t.status === 'done').length
+
+      const isPassed = total > 0 && total === done
+      const isEnabled = previousPassed || total > 0 || stage.id === 'pre-prod'
+
+      stats[stage.id] = { isPassed, isEnabled }
+
+      if (!isPassed) {
+        previousPassed = false
+      }
+    })
+    return stats
+  }, [tasks])
+
   const progressPct = tasks.length ? Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100) : 0
 
   return (
@@ -120,31 +140,33 @@ export default function TrailerPage() {
                       if (e.key === 'Enter') {
                         if (e.currentTarget.value) updateDeadline(e.currentTarget.value)
                         setIsEditingDeadline(false)
+                      } else if (e.key === 'Escape') {
+                        setIsEditingDeadline(false)
                       }
-                      if (e.key === 'Escape') setIsEditingDeadline(false)
                     }}
                   />
                 </div>
               ) : (
                 <div 
-                  className="font-mono text-3xl font-bold text-brick tracking-tight leading-none cursor-pointer hover:opacity-80 transition-opacity"
+                  className="font-display text-2xl font-bold text-primary cursor-pointer hover:text-gold transition-colors"
                   onClick={() => setIsEditingDeadline(true)}
-                  title="Click to change deadline"
+                  title="Click to edit deadline"
                 >
-                  {daysToDeadline}
+                  {daysToDeadline} days
                 </div>
               )}
             </div>
-            <Timer className="text-brick/50" size={32} />
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center text-gold">
+              <Timer size={20} />
+            </div>
           </div>
         </div>
 
         {/* -- Stage tab bar -- */}
-        <div className="shrink-0 flex gap-2 overflow-x-auto scrollbar-hide pb-2">
-          {STAGES.map((stage, i) => {
+        <div className="shrink-0 flex gap-2 overflow-x-auto custom-scrollbar pb-2">
+          {STAGES.map((stage) => {
             const isActive = stage.id === activeStage
-            const isEnabled = ACTIVE_STAGES.includes(stage.id)
-            const isPassed = i < currentStageIndex
+            const { isPassed, isEnabled } = stageStats[stage.id] || { isPassed: false, isEnabled: false }
             return (
               <button
                 key={stage.id}
