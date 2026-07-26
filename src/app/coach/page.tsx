@@ -212,17 +212,41 @@ export default function CoachPage() {
     recentAchievement: achievementContext.recent,
   };
 
-  const initialMessage: Message = {
+  const initialMessage: Message = useMemo(() => ({
     id: 'intro',
     role: 'coach',
     content: `Phase ${currentPhase} of 6. ${totalSolved} problems in total — you're in the phase where DSA gets structurally hard.\n\nAsk me anything about your progress, what to focus on today, or how to redistribute after a rough week.`,
     fromData: true,
     timestamp: new Date(),
-  };
+  }), [currentPhase, totalSolved]);
 
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [input, setInput] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('coach_messages');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.length > 0) {
+          const withDates = parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
+          if (withDates[0].id === 'intro') {
+            withDates[0] = initialMessage;
+          }
+          setMessages(withDates);
+        }
+      } catch (e) {}
+    }
+    setIsLoaded(true);
+  }, [initialMessage]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('coach_messages', JSON.stringify(messages));
+    }
+  }, [messages, isLoaded]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -432,7 +456,10 @@ export default function CoachPage() {
         </form>
 
         <button
-          onClick={() => setMessages([initialMessage])}
+          onClick={() => {
+            setMessages([initialMessage]);
+            localStorage.removeItem('coach_messages');
+          }}
           className="mt-3 text-xs text-muted hover:text-secondary transition-colors flex items-center gap-1 mx-auto"
           id="coach-clear"
         >
