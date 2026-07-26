@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useTrailer } from '@/lib/hooks/useTrailer'
+import { useSettings } from '@/lib/hooks/useSettings'
 import type { TrailerStage, TrailerTask } from '@/lib/hooks/useTrailer'
 import { Plus, X, GripVertical, Clock, User, Trash2, ChevronRight, ChevronLeft, Calendar, Tag, AlertCircle, PlaySquare, Timer, ListTodo } from 'lucide-react'
 import clsx from 'clsx'
@@ -32,6 +33,7 @@ const PRIORITIES = [
 
 export default function TrailerPage() {
   const { tasks, activeStage, setActiveStage, todo, inProgress, done, addTask, updateTask, deleteTask, daysToDeadline, loading, deadlineDate, updateDeadline } = useTrailer()
+  const { currentPhase } = useSettings()
 
   const [isEditingDeadline, setIsEditingDeadline] = useState(false)
 
@@ -91,7 +93,7 @@ export default function TrailerPage() {
               Trailer Board
             </h1>
             <div className="text-secondary text-sm mt-2 font-mono flex items-center gap-2 flex-wrap">
-              <span className="badge badge-muted">Phase 5</span>
+              <span className="badge badge-muted">Phase {currentPhase}</span>
               <span>•</span>
               <span className={clsx(progressPct >= 50 ? 'text-jade' : 'text-gold')}>
                 {progressPct}% done overall
