@@ -8,162 +8,32 @@ import { useToast } from '@/components/providers/ToastProvider';
 type SessionType = 'work' | 'break';
 type Mode = '25/5' | '50/10' | 'custom';
 
-interface FocusSession {
-  id: string;
-  task_label?: string;
-  duration_min: number;
-  actual_min: number;
-  completed: boolean;
-  started_at: string;
-}
+import { useFocusTimer } from '@/components/providers/FocusTimerProvider';
 
 export default function FocusPage() {
-  const toast = useToast();
-  const [mode, setMode] = useState<Mode>('25/5');
-  const [sessionType, setSessionType] = useState<SessionType>('work');
-  const [timeLeft, setTimeLeft] = useState(25 * 60);
-  const [isActive, setIsActive] = useState(false);
-  const [sessionsCompleted, setSessionsCompleted] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [customWork, setCustomWork] = useState(25);
-  const [customBreak, setCustomBreak] = useState(5);
-  const [taskLabel, setTaskLabel] = useState('');
-  const [sessions, setSessions] = useState<FocusSession[]>([]);
-  const [loadingSessions, setLoadingSessions] = useState(true);
-
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const sessionStartRef = useRef<Date | null>(null);
-
-  const getInitialTime = (type: SessionType, m: Mode) => {
-    if (m === '25/5')  return type === 'work' ? 25 * 60 : 5 * 60;
-    if (m === '50/10') return type === 'work' ? 50 * 60 : 10 * 60;
-    return type === 'work' ? customWork * 60 : customBreak * 60;
-  };
-
-  // ── Fetch today's sessions ─────────────────────────────────
-  const fetchSessions = useCallback(async () => {
-    try {
-      setLoadingSessions(true);
-      const res = await fetch('/api/focus-sessions');
-      if (res.ok) {
-        const data: FocusSession[] = await res.json();
-        // Filter to today
-        const today = new Date().toDateString();
-        const todaySessions = data.filter(s => new Date(s.started_at).toDateString() === today);
-        setSessions(todaySessions);
-        setSessionsCompleted(todaySessions.filter(s => s.completed).length);
-      }
-    } catch {}
-    finally { setLoadingSessions(false); }
-  }, []);
-
-  useEffect(() => { fetchSessions(); }, [fetchSessions]);
-
-  // ── Audio ──────────────────────────────────────────────────
-  function playBeep() {
-    if (!soundEnabled) return;
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(528, ctx.currentTime);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 1);
-    } catch {}
-  };
-
-  // ── Save completed session to DB ───────────────────────────
-  async function saveSession(completed: boolean) {
-    const totalTime = getInitialTime(sessionType, mode);
-    const actualMin = Math.round((totalTime - timeLeft) / 60);
-    try {
-      const res = await fetch('/api/focus-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          task_label: taskLabel.trim() || null,
-          duration_min: Math.round(totalTime / 60),
-          actual_min: actualMin,
-          completed,
-        }),
-      });
-      if (res.ok) {
-        const session = await res.json();
-        setSessions(prev => [session, ...prev]);
-        if (completed) {
-          setSessionsCompleted(p => p + 1);
-          toast.success(`${sessionType === 'work' ? 'Focus' : 'Break'} session complete!`);
-        }
-      }
-    } catch {}
-  };
-
-  async function handleSessionComplete() {
-    playBeep();
-    await saveSession(true);
-    setIsActive(false);
-    setSessionType(prev => prev === 'work' ? 'break' : 'work');
-  };
-
-  // ── Timer logic ────────────────────────────────────────────
-  useEffect(() => {
-    setTimeLeft(getInitialTime(sessionType, mode));
-    setIsActive(false);
-  }, [mode, sessionType, customWork, customBreak]);
-
-  useEffect(() => {
-    if (isActive && timeLeft > 0) {
-      timerRef.current = setTimeout(() => setTimeLeft(p => p - 1), 1000);
-    } else if (isActive && timeLeft === 0) {
-      handleSessionComplete();
-    }
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [isActive, timeLeft]);
+  const {
+    mode, setMode,
+    sessionType,
+    timeLeft, isActive, sessionsCompleted,
+    soundEnabled, setSoundEnabled,
+    customWork, setCustomWork,
+    customBreak, setCustomBreak,
+    taskLabel, setTaskLabel,
+    sessions,
+    toggleTimer, skipSession, resetTimer, getInitialTime
+  } = useFocusTimer();
 
   // ── Spacebar toggle ────────────────────────────────────────
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.code === 'Space' && e.target === document.body) {
         e.preventDefault();
-        setIsActive(p => !p);
+        toggleTimer();
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
-
-  // ── Track session start time ───────────────────────────────
-  useEffect(() => {
-    if (isActive && !sessionStartRef.current) {
-      sessionStartRef.current = new Date();
-    } else if (!isActive) {
-      sessionStartRef.current = null;
-    }
-  }, [isActive]);
-
-
-  // ── Controls ───────────────────────────────────────────────
-  const toggleTimer = () => {
-    if (!isActive) sessionStartRef.current = new Date();
-    setIsActive(p => !p);
-  };
-
-  const skipSession = async () => {
-    if (isActive) await saveSession(false);
-    setIsActive(false);
-    setSessionType(prev => prev === 'work' ? 'break' : 'work');
-  };
-
-  const resetTimer = () => {
-    setIsActive(false);
-    setTimeLeft(getInitialTime(sessionType, mode));
-    sessionStartRef.current = null;
-  };
+  }, [toggleTimer]);
 
 
   // ── Display ────────────────────────────────────────────────

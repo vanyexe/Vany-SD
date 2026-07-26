@@ -4,6 +4,7 @@ import './globals.css'
 import AppShell from '@/components/layout/AppShell'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { ToastProvider } from '@/components/providers/ToastProvider'
+import { FocusTimerProvider } from '@/components/providers/FocusTimerProvider'
 import Script from 'next/script'
 
 const fraunces = Fraunces({
@@ -78,7 +79,9 @@ export default function RootLayout({
       <body className="bg-ink text-primary font-body antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <ToastProvider>
-            <AppShell>{children}</AppShell>
+            <FocusTimerProvider>
+              <AppShell>{children}</AppShell>
+            </FocusTimerProvider>
           </ToastProvider>
         </ThemeProvider>
       </body>
