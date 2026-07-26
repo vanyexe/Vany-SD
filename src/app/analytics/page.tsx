@@ -446,55 +446,57 @@ export default function AnalyticsPage() {
                   linkLabel="Open Habits"
                 />
               ) : (
-                <>
-                  {/* Day labels */}
-                  <div className="flex gap-1 mb-1 pl-8">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                      <div key={i} className="font-mono text-[9px] text-muted" style={{ width: 14, textAlign: 'center' }}>{d}</div>
-                    ))}
-                  </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-max">
+                    {/* Day labels */}
+                    <div className="flex gap-1 mb-1 pl-8">
+                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                        <div key={i} className="font-mono text-[9px] text-muted" style={{ width: 14, textAlign: 'center' }}>{d}</div>
+                      ))}
+                    </div>
 
-                  <div className="flex gap-1 overflow-x-auto" id="heatmap-grid">
-                    {heatmapWeeks.map((week, wi) => (
-                      <div key={wi} className="flex flex-col gap-1">
-                        {week.map((cell) => {
-                          const opacity = cell.isFuture ? 0 : cell.count === 0 ? 0.08 :
-                            cell.count === 1 ? 0.25 :
-                            cell.count === 2 ? 0.45 :
-                            cell.count === 3 ? 0.65 :
-                            cell.count === 4 ? 0.82 : 1
+                    <div className="flex gap-1 overflow-x-auto" id="heatmap-grid">
+                      {heatmapWeeks.map((week, wi) => (
+                        <div key={wi} className="flex flex-col gap-1">
+                          {week.map((cell) => {
+                            const opacity = cell.isFuture ? 0 : cell.count === 0 ? 0.08 :
+                              cell.count === 1 ? 0.25 :
+                              cell.count === 2 ? 0.45 :
+                              cell.count === 3 ? 0.65 :
+                              cell.count === 4 ? 0.82 : 1
 
-                          return (
-                            <div
-                              key={cell.date}
-                              title={cell.isFuture ? '' : `${cell.date}: ${cell.count} habit${cell.count !== 1 ? 's' : ''}`}
-                              style={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: 3,
-                                background: cell.isFuture
-                                  ? 'transparent'
-                                  : `rgba(63, 167, 147, ${opacity})`,
-                                outline: cell.isToday ? '2px solid var(--color-jade)' : 'none',
-                                outlineOffset: 1,
-                                cursor: 'default',
-                              }}
-                            />
-                          )
-                        })}
-                      </div>
-                    ))}
-                  </div>
+                            return (
+                              <div
+                                key={cell.date}
+                                title={cell.isFuture ? '' : `${cell.date}: ${cell.count} habit${cell.count !== 1 ? 's' : ''}`}
+                                style={{
+                                  width: 14,
+                                  height: 14,
+                                  borderRadius: 3,
+                                  background: cell.isFuture
+                                    ? 'transparent'
+                                    : `rgba(63, 167, 147, ${opacity})`,
+                                  outline: cell.isToday ? '2px solid var(--color-jade)' : 'none',
+                                  outlineOffset: 1,
+                                  cursor: 'default',
+                                }}
+                              />
+                            )
+                          })}
+                        </div>
+                      ))}
+                    </div>
 
-                  {/* Legend */}
-                  <div className="flex items-center gap-2 mt-3 justify-end">
-                    <span className="text-[10px] text-muted font-mono">Less</span>
-                    {[0.08, 0.25, 0.45, 0.65, 0.82, 1].map(op => (
-                      <div key={op} style={{ width: 10, height: 10, borderRadius: 2, background: `rgba(63,167,147,${op})` }} />
-                    ))}
-                    <span className="text-[10px] text-muted font-mono">More</span>
+                    {/* Legend */}
+                    <div className="flex items-center gap-2 mt-3 justify-end">
+                      <span className="text-[10px] text-muted font-mono">Less</span>
+                      {[0.08, 0.25, 0.45, 0.65, 0.82, 1].map(op => (
+                        <div key={op} style={{ width: 10, height: 10, borderRadius: 2, background: `rgba(63,167,147,${op})` }} />
+                      ))}
+                      <span className="text-[10px] text-muted font-mono">More</span>
+                    </div>
                   </div>
-                </>
+                </div>
               )}
             </section>
           </div>
@@ -520,8 +522,8 @@ export default function AnalyticsPage() {
                 </select>
               </div>
 
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
+              <div className="flex flex-col md:flex-row items-center gap-8 mt-2">
+                <div className="relative flex items-center justify-center shrink-0" style={{ width: 140, height: 140 }}>
                   <Donut pct={productivityScore} size={140} stroke={12} color={scoreColor} />
                   <div className="absolute flex flex-col items-center">
                     <span className="font-mono font-bold" style={{ fontSize: '2.2rem', color: 'var(--color-primary)', letterSpacing: '-0.04em', lineHeight: 1 }}>
@@ -532,7 +534,7 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Score breakdown */}
-                <div className="w-full space-y-4 mt-2">
+                <div className="flex-1 w-full space-y-5">
                   {[
                     { label: 'Habits', val: productivityScoreData.habitVal, max: 40, color: 'var(--color-jade)' },
                     { label: 'DSA', val: productivityScoreData.dsaVal, max: 35, color: 'var(--color-gold)' },
@@ -682,7 +684,7 @@ export default function AnalyticsPage() {
                       <span className="font-mono text-[9px] text-muted">done</span>
                     </div>
                   </div>
-                  <div className="space-y-4 flex-1 max-w-[200px]">
+                  <div className="space-y-4 flex-1">
                     {[
                       { label: 'Total Tasks',       val: taskStats.total,              color: 'var(--color-primary)' },
                       { label: 'Done This Week',     val: taskStats.completedThisWeek, color: 'var(--color-jade)' },
@@ -714,12 +716,12 @@ export default function AnalyticsPage() {
               <EmptyCard icon={Activity} title="No workouts" desc="Start logging your fitness." href="/fitness" linkLabel="Log Workout" />
             ) : (
               <div className="space-y-4">
-                <div className="flex justify-between items-end mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-5">
                   <div>
                     <div className="text-[10px] font-mono text-muted uppercase">Total Workouts</div>
                     <div className="text-3xl font-mono font-bold text-primary">{workouts.length}</div>
                   </div>
-                  <div className="text-right">
+                  <div>
                     <div className="text-[10px] font-mono text-muted uppercase">Hours Logged</div>
                     <div className="text-xl font-mono text-primary">{Math.round(workouts.reduce((acc, w) => acc + (w.duration_min || 0), 0) / 60)}h</div>
                   </div>
@@ -757,7 +759,7 @@ export default function AnalyticsPage() {
                       <span className="font-mono text-[8px] text-muted uppercase">done</span>
                     </div>
                   </div>
-                  <div className="space-y-4 flex-1 max-w-[200px]">
+                  <div className="space-y-4 flex-1">
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-secondary">Active</span>
                       <span className="font-mono text-sm">{goals.filter(g => g.status === 'active').length}</span>
