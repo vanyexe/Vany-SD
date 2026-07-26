@@ -104,10 +104,20 @@ export default function SettingsPage() {
     toast.success('API key saved locally');
   };
 
-  const toggleNotif = (key: string, val: boolean) => {
+  const toggleNotif = async (key: string, val: boolean) => {
+    if (key === 'desktop' && val) {
+      if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          toast.error('Browser notifications blocked. Please allow them in your browser settings.');
+          return; // don't enable the toggle
+        }
+      }
+    }
     const updated = { ...notifications, [key]: val };
     setNotifications(updated);
     localStorage.setItem('yatra_notif_prefs', JSON.stringify(updated));
+    window.dispatchEvent(new Event('storage')); // sync immediately across tabs/components
   };
 
   const handleExport = async () => {

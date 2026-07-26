@@ -116,6 +116,26 @@ export default function HomePage() {
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef<HTMLDivElement>(null)
 
+  const [notifPrefs, setNotifPrefs] = useState({
+    daily: true,
+    dsa: true,
+    deadlines: true,
+    desktop: false,
+  })
+
+  // Sync with settings preferences
+  useEffect(() => {
+    const loadPrefs = () => {
+      const saved = localStorage.getItem('yatra_notif_prefs')
+      if (saved) {
+        try { setNotifPrefs(JSON.parse(saved)) } catch {}
+      }
+    }
+    loadPrefs()
+    window.addEventListener('storage', loadPrefs)
+    return () => window.removeEventListener('storage', loadPrefs)
+  }, [])
+
   // Track today's date — when it changes, we refresh fitness data
   const [todayDate, setTodayDate] = useState(() => getISTDateString())
   const [fitnessRefreshKey, setFitnessRefreshKey] = useState(0)
@@ -150,34 +170,34 @@ export default function HomePage() {
     const today = getISTDateString()
     const items: { id: string; type: 'warn' | 'info' | 'success'; message: string; href: string }[] = []
 
-    // Overdue tasks (past due_date, still open)
-    const overdueTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived' && t.due_date && t.due_date < today)
-    if (overdueTasks.length > 0) {
-      items.push({ id: 'overdue-tasks', type: 'warn', message: `${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''} need your attention`, href: '/tasks' })
-    }
-
-    // Pending tasks (open, not overdue)
-    const pendingTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived' && (!t.due_date || t.due_date >= today))
-    if (pendingTasks.length > 0) {
-      items.push({ id: 'pending-tasks', type: 'info', message: `${pendingTasks.length} open task${pendingTasks.length > 1 ? 's' : ''} remaining`, href: '/tasks' })
-    }
-
-    // DSA reviews due
-    if (!dsaLoading && dueForReview.length > 0) {
-      items.push({ id: 'dsa-review', type: 'warn', message: `${dueForReview.length} DSA problem${dueForReview.length > 1 ? 's' : ''} due for review`, href: '/dsa' })
-    }
-
-    // Incomplete habits
-    if (!habitsLoading) {
-      const remainingHabits = todayChecklist.filter(t => !t.done)
-      if (remainingHabits.length > 0) {
-        items.push({ id: 'habits', type: 'info', message: `${remainingHabits.length} habit${remainingHabits.length > 1 ? 's' : ''} left to complete today`, href: '/habits' })
+    // Overdue/Pending tasks
+    if (notifPrefs.deadlines) {
+      const overdueTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived' && t.due_date && t.due_date < today)
+      if (overdueTasks.length > 0) {
+        items.push({ id: 'overdue-tasks', type: 'warn', message: `${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''} need your attention`, href: '/tasks' })
+      }
+      const pendingTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived' && (!t.due_date || t.due_date >= today))
+      if (pendingTasks.length > 0) {
+        items.push({ id: 'pending-tasks', type: 'info', message: `${pendingTasks.length} open task${pendingTasks.length > 1 ? 's' : ''} remaining`, href: '/tasks' })
       }
     }
 
-    // No workout today (only after fitness data is loaded)
-    if (fitnessToday !== null && fitnessToday.workouts === 0) {
-      items.push({ id: 'no-workout', type: 'info', message: `No workout logged today — stay active!`, href: '/fitness/log' })
+    // DSA reviews due
+    if (notifPrefs.dsa && !dsaLoading && dueForReview.length > 0) {
+      items.push({ id: 'dsa-review', type: 'warn', message: `${dueForReview.length} DSA problem${dueForReview.length > 1 ? 's' : ''} due for review`, href: '/dsa' })
+    }
+
+    // Daily Reminders (Habits + Fitness)
+    if (notifPrefs.daily) {
+      if (!habitsLoading) {
+        const remainingHabits = todayChecklist.filter(t => !t.done)
+        if (remainingHabits.length > 0) {
+          items.push({ id: 'habits', type: 'info', message: `${remainingHabits.length} habit${remainingHabits.length > 1 ? 's' : ''} left to complete today`, href: '/habits' })
+        }
+      }
+      if (fitnessToday !== null && fitnessToday.workouts === 0) {
+        items.push({ id: 'no-workout', type: 'info', message: `No workout logged today — stay active!`, href: '/fitness/log' })
+      }
     }
 
     // All clear — only when all data has loaded and nothing pending
@@ -187,10 +207,26 @@ export default function HomePage() {
     }
 
     return items
-  }, [tasks, dueForReview, todayChecklist, fitnessToday, habitsLoading, tasksLoading, dsaLoading, todayDate])
+  }, [tasks, dueForReview, todayChecklist, fitnessToday, habitsLoading, tasksLoading, dsaLoading, todayDate, notifPrefs])
 
   // Badge count = exact number of items shown in panel (0 if only "all clear")
   const unreadCount = notifications.filter(n => n.type !== 'success').length
+
+  // Trigger desktop notifications if enabled
+  useEffect(() => {
+    if (notifPrefs.desktop && unreadCount > 0 && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      const lastNotif = sessionStorage.getItem('yatra_last_desktop_notif')
+      const now = Date.now()
+      // Only show desktop notification once per hour to prevent spamming
+      if (!lastNotif || now - parseInt(lastNotif) > 3600_000) {
+        new Notification('Yatra Notifications', {
+          body: `You have ${unreadCount} pending notification${unreadCount > 1 ? 's' : ''} on your dashboard.`,
+          icon: '/favicon.ico'
+        })
+        sessionStorage.setItem('yatra_last_desktop_notif', now.toString())
+      }
+    }
+  }, [unreadCount, notifPrefs.desktop])
 
   // Close on outside click
   useEffect(() => {
