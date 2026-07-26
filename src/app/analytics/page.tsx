@@ -179,14 +179,48 @@ export default function AnalyticsPage() {
     return weeks
   }, [heatmapData])
 
+  const [scorePeriod, setScorePeriod] = useState<'today' | 'week' | 'year'>('today')
+
   // ── Productivity Score (real) ──
-  const productivityScore = useMemo(() => {
-    const habitsToday = HABITS.filter(h => isDone(h.id, today)).length
-    const habitPct = HABITS.length > 0 ? habitsToday / HABITS.length : 0
-    const dsaToday = problems.filter(p => p.date_solved === today).length > 0 ? 1 : 0
-    const todayTasks = tasks.filter(t => t.completed_at?.slice(0, 10) === today).length > 0 ? 1 : 0
-    return Math.round(habitPct * 40 + dsaToday * 35 + todayTasks * 25)
-  }, [isDone, today, problems, tasks])
+  const productivityScoreData = useMemo(() => {
+    let days = 1;
+    let startDate = today;
+    
+    if (scorePeriod === 'week') {
+      days = 7;
+      startDate = isoDate(addDays(new Date(), -6));
+    } else if (scorePeriod === 'year') {
+      days = 365;
+      startDate = isoDate(addDays(new Date(), -364));
+    }
+
+    // Habits score
+    const totalPossibleHabits = HABITS.length * days;
+    const completedHabits = habitLogs.filter(l => l.done && l.log_date >= startDate && l.log_date <= today).length;
+    const habitPct = totalPossibleHabits > 0 ? completedHabits / totalPossibleHabits : 0;
+    
+    // DSA score (count days with at least 1 problem solved)
+    const dsaDays = new Set(problems.filter(p => p.date_solved >= startDate && p.date_solved <= today).map(p => p.date_solved)).size;
+    const dsaPct = dsaDays / days;
+
+    // Tasks score (count days with at least 1 task completed)
+    const taskDays = new Set(tasks.filter(t => {
+      const d = t.completed_at?.slice(0, 10);
+      return d && d >= startDate && d <= today && t.status === 'done';
+    }).map(t => t.completed_at?.slice(0, 10))).size;
+    const taskPct = taskDays / days;
+
+    const score = Math.round(habitPct * 40 + dsaPct * 35 + taskPct * 25);
+    
+    return {
+      score,
+      habitVal: Math.round(habitPct * 40),
+      dsaVal: Math.round(dsaPct * 35),
+      taskVal: Math.round(taskPct * 25)
+    };
+  }, [scorePeriod, today, habitLogs, problems, tasks])
+
+  const productivityScore = productivityScoreData.score;
 
   const scoreLabel =
     productivityScore >= 80 ? 'Excellent' :
@@ -469,9 +503,20 @@ export default function AnalyticsPage() {
 
             {/* Productivity Score */}
             <section id="productivity-score" className="card-raised rounded-xl p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <Target size={16} style={{ color: scoreColor }} />
-                <h2 className="text-sm font-semibold text-primary">Today's Score</h2>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <Target size={16} style={{ color: scoreColor }} />
+                  <h2 className="text-sm font-semibold text-primary">Score</h2>
+                </div>
+                <select
+                  value={scorePeriod}
+                  onChange={(e) => setScorePeriod(e.target.value as any)}
+                  className="bg-surface border border-border text-xs text-primary rounded px-2 py-1 outline-none focus:border-jade transition-colors"
+                >
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="year">This Year</option>
+                </select>
               </div>
 
               <div className="flex flex-col items-center gap-4">
@@ -488,9 +533,9 @@ export default function AnalyticsPage() {
                 {/* Score breakdown */}
                 <div className="w-full space-y-2.5">
                   {[
-                    { label: 'Habits', val: Math.round((HABITS.filter(h => isDone(h.id, today)).length / HABITS.length) * 40), max: 40, color: 'var(--color-jade)' },
-                    { label: 'DSA', val: problems.filter(p => p.date_solved === today).length > 0 ? 35 : 0, max: 35, color: 'var(--color-gold)' },
-                    { label: 'Tasks', val: tasks.filter(t => t.completed_at?.slice(0, 10) === today).length > 0 ? 25 : 0, max: 25, color: 'var(--color-amber)' },
+                    { label: 'Habits', val: productivityScoreData.habitVal, max: 40, color: 'var(--color-jade)' },
+                    { label: 'DSA', val: productivityScoreData.dsaVal, max: 35, color: 'var(--color-gold)' },
+                    { label: 'Tasks', val: productivityScoreData.taskVal, max: 25, color: 'var(--color-amber)' },
                   ].map(item => (
                     <div key={item.label}>
                       <div className="flex justify-between mb-1">
