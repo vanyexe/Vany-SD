@@ -72,9 +72,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     // Load AI key from localStorage
-    setOpenAiKey(localStorage.getItem('yatra_openai_key') || '');
+    setOpenAiKey(localStorage.getItem('vyra_openai_key') || '');
     // Load notifications prefs
-    const saved = localStorage.getItem('yatra_notif_prefs');
+    const saved = localStorage.getItem('vyra_notif_prefs');
     if (saved) {
       try { setNotifications(JSON.parse(saved)); } catch {}
     }
@@ -100,7 +100,7 @@ export default function SettingsPage() {
   };
 
   const handleSaveAiKey = () => {
-    localStorage.setItem('yatra_openai_key', openAiKey);
+    localStorage.setItem('vyra_openai_key', openAiKey);
     toast.success('API key saved locally');
   };
 
@@ -116,7 +116,7 @@ export default function SettingsPage() {
     }
     const updated = { ...notifications, [key]: val };
     setNotifications(updated);
-    localStorage.setItem('yatra_notif_prefs', JSON.stringify(updated));
+    localStorage.setItem('vyra_notif_prefs', JSON.stringify(updated));
     window.dispatchEvent(new Event('storage')); // sync immediately across tabs/components
   };
 
@@ -128,7 +128,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `yatra-export-${getISTDateString()}.json`;
+      a.download = `vyra-export-${getISTDateString()}.json`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success('Data exported successfully!');
@@ -378,7 +378,7 @@ export default function SettingsPage() {
 
             <div className="mt-6 pt-5 border-t border-border">
               <p className="text-xs font-mono text-brick uppercase tracking-widest mb-2">Danger Zone</p>
-              <p className="text-xs text-muted mb-3">Permanently delete all your Yatra data. This cannot be undone.</p>
+              <p className="text-xs text-muted mb-3">Permanently delete all your Vyra data. This cannot be undone.</p>
               <button
                 id="btn-delete-account"
                 onClick={() => setConfirmDelete(true)}
@@ -400,7 +400,7 @@ export default function SettingsPage() {
               {signingOut ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
               Sign Out
             </button>
-            <span className="text-xs text-muted font-mono">Yatra v1.0</span>
+            <span className="text-xs text-muted font-mono">Vyra v1.0</span>
           </div>
         </div>
       </div>

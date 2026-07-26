@@ -126,7 +126,7 @@ export default function HomePage() {
   // Sync with settings preferences
   useEffect(() => {
     const loadPrefs = () => {
-      const saved = localStorage.getItem('yatra_notif_prefs')
+      const saved = localStorage.getItem('vyra_notif_prefs')
       if (saved) {
         try { setNotifPrefs(JSON.parse(saved)) } catch {}
       }
@@ -215,15 +215,16 @@ export default function HomePage() {
   // Trigger desktop notifications if enabled
   useEffect(() => {
     if (notifPrefs.desktop && unreadCount > 0 && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      const lastNotif = sessionStorage.getItem('yatra_last_desktop_notif')
+      const lastNotif = sessionStorage.getItem('vyra_last_desktop_notif')
       const now = Date.now()
-      // Only show desktop notification once per hour to prevent spamming
-      if (!lastNotif || now - parseInt(lastNotif) > 3600_000) {
-        new Notification('Yatra Notifications', {
+      if (lastNotif && now - parseInt(lastNotif) < 3600000) return // max 1 per hour
+
+      if (Notification.permission === 'granted') {
+        new Notification('Vyra Notifications', {
           body: `You have ${unreadCount} pending notification${unreadCount > 1 ? 's' : ''} on your dashboard.`,
           icon: '/favicon.ico'
         })
-        sessionStorage.setItem('yatra_last_desktop_notif', now.toString())
+        sessionStorage.setItem('vyra_last_desktop_notif', now.toString())
       }
     }
   }, [unreadCount, notifPrefs.desktop])

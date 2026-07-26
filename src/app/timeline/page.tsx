@@ -140,7 +140,7 @@ export default function TimelinePage() {
             <History className="text-jade" size={30} />
             <span>Life Timeline</span>
           </h1>
-          <p className="text-secondary text-sm font-mono">A searchable history of everything you do in Yatra</p>
+          <p className="text-secondary text-sm font-mono">A searchable history of everything you do in Vyra</p>
         </div>
 
         {/* Filter Bar (Sticky) */}
@@ -194,7 +194,7 @@ export default function TimelinePage() {
         <div className="flex-1 px-5 py-6 space-y-8">
           {events.length === 0 && !loading && (
             <div className="text-center py-20">
-              <p className="text-muted text-sm">Your timeline is empty. Start using Yatra and your activity will appear here!</p>
+              <p className="text-muted text-sm">Your timeline is empty. Start using Vyra and your activity will appear here!</p>
             </div>
           )}
 
