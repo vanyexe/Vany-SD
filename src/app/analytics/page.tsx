@@ -71,7 +71,7 @@ function Donut({ pct, size = 80, stroke = 10, color = 'var(--color-jade)' }: {
   const offset = circ - (Math.min(pct, 100) / 100) * circ
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-surface-raised)" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-surface)" strokeWidth={stroke} />
       <circle
         cx={size / 2} cy={size / 2} r={r} fill="none"
         stroke={color} strokeWidth={stroke} strokeLinecap="round"
@@ -531,7 +531,7 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Score breakdown */}
-                <div className="w-full space-y-2.5">
+                <div className="w-full space-y-4 mt-2">
                   {[
                     { label: 'Habits', val: productivityScoreData.habitVal, max: 40, color: 'var(--color-jade)' },
                     { label: 'DSA', val: productivityScoreData.dsaVal, max: 35, color: 'var(--color-gold)' },
@@ -681,14 +681,14 @@ export default function AnalyticsPage() {
                       <span className="font-mono text-[9px] text-muted">done</span>
                     </div>
                   </div>
-                  <div className="space-y-3 flex-1">
+                  <div className="space-y-4 flex-1">
                     {[
                       { label: 'Total Tasks',       val: taskStats.total,              color: 'var(--color-primary)' },
                       { label: 'Done This Week',     val: taskStats.completedThisWeek, color: 'var(--color-jade)' },
                       { label: 'Overdue',            val: taskStats.overdue,           color: taskStats.overdue > 0 ? 'var(--color-brick)' : 'var(--color-muted)' },
                     ].map(row => (
-                      <div key={row.label} className="flex justify-between items-center">
-                        <span className="text-xs text-secondary">{row.label}</span>
+                      <div key={row.label} className="flex items-center gap-4">
+                        <span className="text-xs text-secondary w-28">{row.label}</span>
                         <span className="font-mono text-sm font-semibold" style={{ color: row.color }}>{row.val}</span>
                       </div>
                     ))}
@@ -756,13 +756,13 @@ export default function AnalyticsPage() {
                       <span className="font-mono text-[8px] text-muted uppercase">done</span>
                     </div>
                   </div>
-                  <div className="space-y-2 flex-1">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-secondary">Active</span>
+                  <div className="space-y-4 flex-1">
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs text-secondary w-28">Active</span>
                       <span className="font-mono text-sm">{goals.filter(g => g.status === 'active').length}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs text-secondary">Avg Progress</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs text-secondary w-28">Avg Progress</span>
                       <span className="font-mono text-sm">{Math.round(goals.filter(g => g.status === 'active').reduce((acc, g) => acc + g.progress_pct, 0) / (goals.filter(g => g.status === 'active').length || 1))}%</span>
                     </div>
                   </div>
