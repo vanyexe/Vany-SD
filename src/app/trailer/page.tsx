@@ -102,13 +102,13 @@ export default function TrailerPage() {
   const progressPct = tasks.length ? Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100) : 0
 
   return (
-    <div className="min-h-dvh bg-ink flex flex-col h-screen overflow-hidden">
-      <div className="max-w-7xl mx-auto w-full px-5 pt-8 pb-4 flex-1 flex flex-col space-y-6">
+    <div className="min-h-dvh bg-ink flex flex-col h-[100dvh] overflow-hidden">
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-5 pt-6 md:pt-8 pb-4 flex-1 flex flex-col space-y-4 md:space-y-6">
 
         {/* -- Header -- */}
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 shrink-0">
           <div>
-            <h1 className="font-display text-4xl font-semibold text-primary flex items-center gap-3">
+            <h1 className="font-display text-3xl md:text-4xl font-semibold text-primary flex items-center gap-3">
               <PlaySquare className="text-brick" size={32} />
               Trailer Board
             </h1>
@@ -156,7 +156,7 @@ export default function TrailerPage() {
                 </div>
               )}
             </div>
-            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center text-gold">
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center text-gold shrink-0">
               <Timer size={20} />
             </div>
           </div>
@@ -191,12 +191,12 @@ export default function TrailerPage() {
         </div>
 
         {/* -- Kanban board -- */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden pb-4">
+        <div className="flex-1 flex md:grid md:grid-cols-3 gap-4 md:gap-6 overflow-x-auto md:overflow-hidden pb-4 snap-x snap-mandatory custom-scrollbar">
           {KANBAN_COLS.map(col => (
             <div
               key={col.id}
               className={clsx(
-                'flex flex-col rounded-2xl border transition-all h-full overflow-hidden',
+                'flex flex-col rounded-2xl border transition-all h-full overflow-hidden shrink-0 w-[85vw] md:w-auto snap-center',
                 dragOverCol === col.id ? 'border-jade bg-jade/5' : clsx(col.border, col.bg)
               )}
               onDragOver={e => { e.preventDefault(); setDragOverCol(col.id) }}
