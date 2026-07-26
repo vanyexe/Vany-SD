@@ -59,6 +59,7 @@ export function useTasks(filter?: TaskFilter) {
     } finally {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/use-memo
   }, [JSON.stringify(filter)])
 
   useEffect(() => {

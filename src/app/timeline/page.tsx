@@ -63,7 +63,7 @@ export default function TimelinePage() {
     
     // Calculate dates
     let from = ''
-    let to = ''
+    const to = ''
     const now = new Date()
     if (dateRange === 'This Week') {
       const w = new Date(now)
@@ -100,7 +100,6 @@ export default function TimelinePage() {
 
   useEffect(() => {
     fetchEvents(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [module, debouncedSearch, dateRange])
 
   useEffect(() => {

@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     
-    const module = searchParams.get('module');
+    const moduleParam = searchParams.get('module');
     const from = searchParams.get('from');
     const to = searchParams.get('to');
     const search = searchParams.get('search');
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       .from('timeline_events')
       .select('*', { count: 'exact' });
 
-    if (module) query = query.eq('module', module);
+    if (moduleParam) query = query.eq('module', moduleParam);
     if (from) query = query.gte('event_date', from);
     if (to) query = query.lte('event_date', to);
     if (search) {

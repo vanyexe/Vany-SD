@@ -177,11 +177,8 @@ export default function CommandPalette({ onClose }: { onClose?: () => void }) {
       <div 
         className="command-panel mx-auto max-w-xl bg-surface rounded-xl shadow-2xl border border-border overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
-        role="combobox"
-        aria-expanded="true"
-        aria-haspopup="listbox"
       >
-        <div className="flex items-center px-4 border-b border-border">
+        <div className="flex items-center gap-3 px-4 border-b border-border" role="combobox" aria-controls="command-palette-listbox" aria-expanded={isOpen}>
           <Search className="w-5 h-5 text-muted shrink-0" />
           <input
             ref={inputRef}

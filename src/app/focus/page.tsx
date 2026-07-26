@@ -59,6 +59,57 @@ export default function FocusPage() {
 
   useEffect(() => { fetchSessions(); }, [fetchSessions]);
 
+  // ── Audio ──────────────────────────────────────────────────
+  function playBeep() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(528, ctx.currentTime);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 1);
+    } catch {}
+  };
+
+  // ── Save completed session to DB ───────────────────────────
+  async function saveSession(completed: boolean) {
+    const totalTime = getInitialTime(sessionType, mode);
+    const actualMin = Math.round((totalTime - timeLeft) / 60);
+    try {
+      const res = await fetch('/api/focus-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task_label: taskLabel.trim() || null,
+          duration_min: Math.round(totalTime / 60),
+          actual_min: actualMin,
+          completed,
+        }),
+      });
+      if (res.ok) {
+        const session = await res.json();
+        setSessions(prev => [session, ...prev]);
+        if (completed) {
+          setSessionsCompleted(p => p + 1);
+          toast.success(`${sessionType === 'work' ? 'Focus' : 'Break'} session complete!`);
+        }
+      }
+    } catch {}
+  };
+
+  async function handleSessionComplete() {
+    playBeep();
+    await saveSession(true);
+    setIsActive(false);
+    setSessionType(prev => prev === 'work' ? 'break' : 'work');
+  };
+
   // ── Timer logic ────────────────────────────────────────────
   useEffect(() => {
     setTimeLeft(getInitialTime(sessionType, mode));
@@ -95,38 +146,6 @@ export default function FocusPage() {
     }
   }, [isActive]);
 
-  // ── Save completed session to DB ───────────────────────────
-  const saveSession = async (completed: boolean) => {
-    const totalTime = getInitialTime(sessionType, mode);
-    const actualMin = Math.round((totalTime - timeLeft) / 60);
-    try {
-      const res = await fetch('/api/focus-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          task_label: taskLabel.trim() || null,
-          duration_min: Math.round(totalTime / 60),
-          actual_min: actualMin,
-          completed,
-        }),
-      });
-      if (res.ok) {
-        const session = await res.json();
-        setSessions(prev => [session, ...prev]);
-        if (completed) {
-          setSessionsCompleted(p => p + 1);
-          toast.success(`${sessionType === 'work' ? 'Focus' : 'Break'} session complete!`);
-        }
-      }
-    } catch {}
-  };
-
-  const handleSessionComplete = async () => {
-    playBeep();
-    await saveSession(true);
-    setIsActive(false);
-    setSessionType(prev => prev === 'work' ? 'break' : 'work');
-  };
 
   // ── Controls ───────────────────────────────────────────────
   const toggleTimer = () => {
@@ -146,23 +165,6 @@ export default function FocusPage() {
     sessionStartRef.current = null;
   };
 
-  // ── Audio ──────────────────────────────────────────────────
-  const playBeep = () => {
-    if (!soundEnabled) return;
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(528, ctx.currentTime);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 1);
-    } catch {}
-  };
 
   // ── Display ────────────────────────────────────────────────
   const formatTime = (s: number) => {

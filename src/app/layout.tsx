@@ -4,6 +4,7 @@ import './globals.css'
 import AppShell from '@/components/layout/AppShell'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { ToastProvider } from '@/components/providers/ToastProvider'
+import Script from 'next/script'
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -63,18 +64,16 @@ export default function RootLayout({
         This runs synchronously before React hydrates.
       */}
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var stored = localStorage.getItem('vany-theme') || 'dark';
-                  document.documentElement.setAttribute('data-theme', stored);
-                } catch(e) {}
-              })();
-            `,
-          }}
-        />
+        <Script id="theme-script" strategy="beforeInteractive">
+          {`
+            (function() {
+              try {
+                var stored = localStorage.getItem('vany-theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', stored);
+              } catch(e) {}
+            })();
+          `}
+        </Script>
       </head>
       <body className="bg-ink text-primary font-body antialiased" suppressHydrationWarning>
         <ThemeProvider>

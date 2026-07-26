@@ -32,7 +32,7 @@ const PROMPTS = [
 
 function parseMarkdown(text: string) {
   if (!text) return { __html: '' }
-  let html = text
+  const html = text
     .replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -46,6 +46,7 @@ function parseMarkdown(text: string) {
 
 export default function JournalPage() {
   const todayStr = getISTDateString()
+  const dateInputRef = useRef<HTMLInputElement>(null)
   const [selectedDate, setSelectedDate] = useState(todayStr)
   
   const [entry, setEntry] = useState<JournalEntry>({
@@ -75,7 +76,7 @@ export default function JournalPage() {
           return
         }
         let s = 1
-        let expected = new Date(dates[0])
+        const expected = new Date(dates[0])
         for (let i = 1; i < dates.length; i++) {
           expected.setDate(expected.getDate() - 1)
           if (dates[i] === getISTDateString(expected)) s++
@@ -176,7 +177,13 @@ export default function JournalPage() {
     }
   }
 
-  const randomPrompt = useMemo(() => PROMPTS[Math.floor(Math.random() * PROMPTS.length)], [selectedDate])
+  const randomPrompt = useMemo(() => {
+    let hash = 0
+    for (let i = 0; i < selectedDate.length; i++) {
+      hash += selectedDate.charCodeAt(i)
+    }
+    return PROMPTS[hash % PROMPTS.length]
+  }, [selectedDate])
   const isEmpty = entry.wordCount === 0
 
   return (
@@ -305,11 +312,28 @@ export default function JournalPage() {
             </button>
             <div className="flex items-center gap-1 bg-surface-raised rounded-lg p-1 border border-border">
               <button onClick={() => navigateDay(-1)} className="btn btn-icon-sm text-muted hover:text-primary"><ChevronLeft size={16}/></button>
-              <div className="text-sm font-medium font-mono px-3 text-primary flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  try { dateInputRef.current?.showPicker() } catch (e) { /* fallback if unsupported */ }
+                }}
+                className="text-sm font-medium font-mono px-3 text-primary flex items-center gap-2 cursor-pointer hover:bg-surface rounded transition-colors relative"
+              >
                 <Calendar size={14} className="text-jade" />
                 {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 {selectedDate === todayStr && <span className="badge badge-jade ml-2">Today</span>}
-              </div>
+                <input 
+                  ref={dateInputRef}
+                  type="date"
+                  value={selectedDate}
+                  max={todayStr}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setSelectedDate(e.target.value)
+                    }
+                  }}
+                  className="absolute inset-0 opacity-0 pointer-events-none w-0 h-0"
+                />
+              </button>
               <button onClick={() => navigateDay(1)} disabled={selectedDate === todayStr} className="btn btn-icon-sm text-muted hover:text-primary disabled:opacity-30"><ChevronRight size={16}/></button>
             </div>
           </div>
