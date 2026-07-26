@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
     .from('focus_sessions')
     .insert({
       user_id: user.id,
-      task_label: task_label ?? null,
       duration_min: duration_min ?? 25,
       actual_min: actual_min ?? 0,
       completed: completed ?? false,
