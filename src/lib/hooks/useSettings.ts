@@ -49,13 +49,16 @@ export function useSettings() {
     return updated
   }, [])
 
-  // Compute day number from start_date
-  const dayNumber = settings
-    ? Math.max(1, Math.floor(
-        (Date.now() - new Date(settings.start_date).getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1)
-    : 1
-
+  // Compute calendar day number from start_date
+  let dayNumber = 1
+  if (settings) {
+    const start = new Date(settings.start_date)
+    start.setHours(0, 0, 0, 0)
+    const now = new Date()
+    now.setHours(0, 0, 0, 0)
+    const diffTime = Math.max(0, now.getTime() - start.getTime())
+    dayNumber = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1
+  }
   return {
     settings,
     loading,
