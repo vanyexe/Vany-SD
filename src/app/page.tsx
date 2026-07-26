@@ -116,45 +116,80 @@ export default function HomePage() {
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef<HTMLDivElement>(null)
 
+  // Track today's date — when it changes, we refresh fitness data
+  const [todayDate, setTodayDate] = useState(() => getISTDateString())
+  const [fitnessRefreshKey, setFitnessRefreshKey] = useState(0)
+
+  // Poll every 60 s: if the date rolled over, bump the key to re-fetch fitness
+  useEffect(() => {
+    const id = setInterval(() => {
+      const newDate = getISTDateString()
+      if (newDate !== todayDate) {
+        setTodayDate(newDate)
+        setFitnessRefreshKey(k => k + 1)
+        setFitnessToday(null) // reset so stale "no workout" doesn't linger
+      }
+    }, 60_000)
+    return () => clearInterval(id)
+  }, [todayDate])
+
+  // Refresh fitness every 5 minutes while page is open
+  useEffect(() => {
+    const doFetch = () => {
+      const todayStr = getISTDateString()
+      fetch(`/api/fitness/workouts?from=${todayStr}&to=${todayStr}`)
+        .then(r => r.ok ? r.json() : { workouts: [], total: 0 })
+        .then(d => setFitnessToday({ workouts: d.total, duration: d.workouts.reduce((s: number, w: any) => s + (w.duration_min || 0), 0) }))
+        .catch(() => {})
+    }
+    const id = setInterval(doFetch, 5 * 60_000)
+    return () => clearInterval(id)
+  }, [fitnessRefreshKey])
+
   const notifications = useMemo(() => {
+    const today = getISTDateString()
     const items: { id: string; type: 'warn' | 'info' | 'success'; message: string; href: string }[] = []
 
-    // Overdue tasks
-    const overdueTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived' && t.due_date && t.due_date < getISTDateString())
+    // Overdue tasks (past due_date, still open)
+    const overdueTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived' && t.due_date && t.due_date < today)
     if (overdueTasks.length > 0) {
-      items.push({ id: 'overdue-tasks', type: 'warn', message: `${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''} — check your agenda`, href: '/tasks' })
+      items.push({ id: 'overdue-tasks', type: 'warn', message: `${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''} need your attention`, href: '/tasks' })
     }
 
-    // Pending (non-done) tasks
-    const pendingTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived')
+    // Pending tasks (open, not overdue)
+    const pendingTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'archived' && (!t.due_date || t.due_date >= today))
     if (pendingTasks.length > 0) {
-      items.push({ id: 'pending-tasks', type: 'info', message: `${pendingTasks.length} task${pendingTasks.length > 1 ? 's' : ''} still to complete today`, href: '/tasks' })
+      items.push({ id: 'pending-tasks', type: 'info', message: `${pendingTasks.length} open task${pendingTasks.length > 1 ? 's' : ''} remaining`, href: '/tasks' })
     }
 
     // DSA reviews due
-    if (dueForReview.length > 0) {
+    if (!dsaLoading && dueForReview.length > 0) {
       items.push({ id: 'dsa-review', type: 'warn', message: `${dueForReview.length} DSA problem${dueForReview.length > 1 ? 's' : ''} due for review`, href: '/dsa' })
     }
 
     // Incomplete habits
-    const remainingHabits = todayChecklist.filter(t => !t.done)
-    if (remainingHabits.length > 0 && !habitsLoading) {
-      items.push({ id: 'habits', type: 'info', message: `${remainingHabits.length} habit${remainingHabits.length > 1 ? 's' : ''} not done today`, href: '/habits' })
+    if (!habitsLoading) {
+      const remainingHabits = todayChecklist.filter(t => !t.done)
+      if (remainingHabits.length > 0) {
+        items.push({ id: 'habits', type: 'info', message: `${remainingHabits.length} habit${remainingHabits.length > 1 ? 's' : ''} left to complete today`, href: '/habits' })
+      }
     }
 
-    // No workout today
+    // No workout today (only after fitness data is loaded)
     if (fitnessToday !== null && fitnessToday.workouts === 0) {
       items.push({ id: 'no-workout', type: 'info', message: `No workout logged today — stay active!`, href: '/fitness/log' })
     }
 
-    // All clear
-    if (items.length === 0 && !habitsLoading && !tasksLoading) {
+    // All clear — only when all data has loaded and nothing pending
+    const dataLoaded = !habitsLoading && !tasksLoading && !dsaLoading && fitnessToday !== null
+    if (items.length === 0 && dataLoaded) {
       items.push({ id: 'all-clear', type: 'success', message: `You're all caught up! Great work today 🎉`, href: '/' })
     }
 
     return items
-  }, [tasks, dueForReview, todayChecklist, fitnessToday, habitsLoading, tasksLoading])
+  }, [tasks, dueForReview, todayChecklist, fitnessToday, habitsLoading, tasksLoading, dsaLoading, todayDate])
 
+  // Badge count = exact number of items shown in panel (0 if only "all clear")
   const unreadCount = notifications.filter(n => n.type !== 'success').length
 
   // Close on outside click
@@ -167,6 +202,7 @@ export default function HomePage() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
 
   if (settingsLoading) {
     return (
