@@ -103,9 +103,14 @@ export function useTrailer() {
   const inProgress = stageTasks.filter(t => t.status === 'in-progress')
   const done = stageTasks.filter(t => t.status === 'done')
 
-  const daysToDeadline = deadlineDate 
-    ? Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : 0
+  let daysToDeadline = 0
+  if (deadlineDate) {
+    const end = new Date(deadlineDate)
+    end.setHours(0, 0, 0, 0)
+    const now = new Date()
+    now.setHours(0, 0, 0, 0)
+    daysToDeadline = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  }
 
   return {
     tasks,
