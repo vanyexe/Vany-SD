@@ -1,7 +1,7 @@
 'use client'
 import { getISTDateString } from '@/lib/dateUtils';
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { HABITS } from '@/lib/data/seed'
 
 export type HabitLog = {
@@ -197,7 +197,11 @@ export function useHabits() {
     return best
   }, [logs])
 
-  const todayAllDone = HABITS.every(h => isDone(h.id, today))
+  const todayAllDone = useMemo(() => {
+    const defaultDone = HABITS.every(h => isDone(h.id, today));
+    const customDone = customHabits.length > 0 ? customHabits.every(h => isDone(h.id, today)) : true;
+    return defaultDone && customDone;
+  }, [isDone, today, customHabits])
 
   return {
     weekDates,

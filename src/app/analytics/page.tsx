@@ -84,7 +84,7 @@ function Donut({ pct, size = 80, stroke = 10, color = 'var(--color-jade)' }: {
 export default function AnalyticsPage() {
   // ── Real hooks ──
   const { problems, totalSolved, solvedThisWeek, countByTopic } = useDsaProblems()
-  const { logs: habitLogs, isDone, loading: habitsLoading } = useHabits()
+  const { logs: habitLogs, isDone, loading: habitsLoading, customHabits } = useHabits()
   const { tasks, loading: tasksLoading } = useTasks()
   const { currentPhase, dayNumber } = useSettings()
   
@@ -195,7 +195,8 @@ export default function AnalyticsPage() {
     }
 
     // Habits score
-    const totalPossibleHabits = HABITS.length * days;
+    const totalActiveHabits = HABITS.length + (customHabits?.length || 0);
+    const totalPossibleHabits = totalActiveHabits * days;
     const completedHabits = habitLogs.filter(l => l.done && l.log_date >= startDate && l.log_date <= today).length;
     const habitPct = totalPossibleHabits > 0 ? completedHabits / totalPossibleHabits : 0;
     
@@ -218,7 +219,7 @@ export default function AnalyticsPage() {
       dsaVal: Math.round(dsaPct * 35),
       taskVal: Math.round(taskPct * 25)
     };
-  }, [scorePeriod, today, habitLogs, problems, tasks])
+  }, [scorePeriod, today, habitLogs, problems, tasks, customHabits])
 
   const productivityScore = productivityScoreData.score;
 
@@ -538,9 +539,9 @@ export default function AnalyticsPage() {
                     { label: 'Tasks', val: productivityScoreData.taskVal, max: 25, color: 'var(--color-amber)' },
                   ].map(item => (
                     <div key={item.label}>
-                      <div className="flex justify-between mb-1">
+                      <div className="flex justify-between items-center mb-1">
                         <span className="text-xs text-secondary">{item.label}</span>
-                        <span className="font-mono text-xs text-muted">{item.val}/{item.max}</span>
+                        <span className="font-mono text-xs text-muted">{item.val} <span className="text-[9px] opacity-70">/ {item.max} pts</span></span>
                       </div>
                       <div className="progress-bar" style={{ height: 5 }}>
                         <div
