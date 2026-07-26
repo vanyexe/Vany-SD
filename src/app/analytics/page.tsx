@@ -676,23 +676,23 @@ export default function AnalyticsPage() {
             ) : (
               <div className="flex-1 flex flex-col justify-center">
                 {/* Donut + stats */}
-                <div className="flex items-center justify-center gap-8">
+                <div className="flex items-center justify-center gap-12">
                   <div className="relative flex-shrink-0">
-                    <Donut pct={taskStats.completionRate} size={96} stroke={10} color="var(--color-gold)" />
+                    <Donut pct={taskStats.completionRate} size={120} stroke={12} color="var(--color-gold)" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="font-mono font-bold text-primary" style={{ fontSize: '1.2rem' }}>{taskStats.completionRate}%</span>
-                      <span className="font-mono text-[9px] text-muted">done</span>
+                      <span className="font-mono font-bold text-primary" style={{ fontSize: '1.5rem' }}>{taskStats.completionRate}%</span>
+                      <span className="font-mono text-[10px] text-muted">done</span>
                     </div>
                   </div>
-                  <div className="space-y-4 w-full max-w-[180px]">
+                  <div className="space-y-5 w-full max-w-[240px]">
                     {[
                       { label: 'Total Tasks',       val: taskStats.total,              color: 'var(--color-primary)' },
                       { label: 'Done This Week',     val: taskStats.completedThisWeek, color: 'var(--color-jade)' },
                       { label: 'Overdue',            val: taskStats.overdue,           color: taskStats.overdue > 0 ? 'var(--color-brick)' : 'var(--color-muted)' },
                     ].map(row => (
                       <div key={row.label} className="flex justify-between items-center">
-                        <span className="text-xs text-secondary">{row.label}</span>
-                        <span className="font-mono text-sm font-semibold" style={{ color: row.color }}>{row.val}</span>
+                        <span className="text-sm text-secondary">{row.label}</span>
+                        <span className="font-mono text-lg font-semibold" style={{ color: row.color }}>{row.val}</span>
                       </div>
                     ))}
                   </div>
@@ -751,22 +751,22 @@ export default function AnalyticsPage() {
               <EmptyCard icon={Target} title="No goals set" desc="Set long-term objectives." href="/goals" linkLabel="Set Goals" />
             ) : (
               <div className="flex-1 flex flex-col justify-between">
-                <div className="flex items-center justify-center gap-6 mb-4">
+                <div className="flex items-center justify-center gap-10 mb-6">
                   <div className="relative flex-shrink-0">
-                    <Donut pct={goals.filter(g => g.status === 'completed').length / (goals.length || 1) * 100 || 0} size={80} stroke={8} color="var(--color-sky, #5B9BD4)" />
+                    <Donut pct={goals.filter(g => g.status === 'completed').length / (goals.length || 1) * 100 || 0} size={100} stroke={10} color="var(--color-sky, #5B9BD4)" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="font-mono font-bold text-primary">{goals.filter(g => g.status === 'completed').length}</span>
-                      <span className="font-mono text-[8px] text-muted uppercase">done</span>
+                      <span className="font-mono font-bold text-primary text-xl">{goals.filter(g => g.status === 'completed').length}</span>
+                      <span className="font-mono text-[9px] text-muted uppercase mt-0.5">done</span>
                     </div>
                   </div>
-                  <div className="space-y-4 w-full max-w-[150px]">
+                  <div className="space-y-5 w-full max-w-[200px]">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-secondary">Active</span>
-                      <span className="font-mono text-sm">{goals.filter(g => g.status === 'active').length}</span>
+                      <span className="text-sm text-secondary">Active</span>
+                      <span className="font-mono text-lg">{goals.filter(g => g.status === 'active').length}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-secondary">Avg Progress</span>
-                      <span className="font-mono text-sm">{Math.round(goals.filter(g => g.status === 'active').reduce((acc, g) => acc + g.progress_pct, 0) / (goals.filter(g => g.status === 'active').length || 1))}%</span>
+                      <span className="text-sm text-secondary">Avg Progress</span>
+                      <span className="font-mono text-lg">{Math.round(goals.filter(g => g.status === 'active').reduce((acc, g) => acc + g.progress_pct, 0) / (goals.filter(g => g.status === 'active').length || 1))}%</span>
                     </div>
                   </div>
                 </div>
