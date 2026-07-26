@@ -22,7 +22,9 @@ export type CustomHabit = {
 }
 
 function getISODate(date: Date): string {
-  return date.toISOString().split('T')[0]
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().split('T')[0];
 }
 
 function getWeekDates(referenceDate: Date): string[] {

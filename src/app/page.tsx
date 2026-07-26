@@ -68,7 +68,8 @@ export default function HomePage() {
     const days = Array.from({length: 7}, (_, i) => {
       const d = new Date()
       d.setDate(d.getDate() - (6 - i))
-      return d.toISOString().slice(0, 10) // 'YYYY-MM-DD'
+      const offset = d.getTimezoneOffset();
+      return new Date(d.getTime() - offset * 60 * 1000).toISOString().split('T')[0]
     })
     return days.map(date => {
       // count how many of the 5 habits were done on that date
@@ -78,7 +79,9 @@ export default function HomePage() {
 
   const [fitnessToday, setFitnessToday] = useState<{workouts: number; duration: number} | null>(null)
   useEffect(() => {
-    const todayStr = new Date().toISOString().slice(0, 10)
+    const d = new Date();
+    const offset = d.getTimezoneOffset();
+    const todayStr = new Date(d.getTime() - offset * 60 * 1000).toISOString().split('T')[0];
     fetch(`/api/fitness/workouts?from=${todayStr}&to=${todayStr}`)
       .then(r => r.ok ? r.json() : {workouts: [], total: 0})
       .then(d => setFitnessToday({ workouts: d.total, duration: d.workouts.reduce((s: number, w: any) => s + (w.duration_min || 0), 0) }))

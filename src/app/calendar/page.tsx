@@ -10,7 +10,9 @@ import { useCalendarEvents, CalendarEvent } from '@/lib/hooks/useCalendarEvents'
 import { HABITS } from '@/lib/data/seed';
 
 function isoDate(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const offset = d.getTimezoneOffset();
+  const localDate = new Date(d.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().split('T')[0];
 }
 
 export default function CalendarPage() {
