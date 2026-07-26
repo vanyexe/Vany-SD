@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { useDsaProblems } from '@/lib/hooks/useDsaProblems'
 import { useHabits } from '@/lib/hooks/useHabits'
 import { useTasks } from '@/lib/hooks/useTasks'
+import { useTrailer } from '@/lib/hooks/useTrailer'
 import { useSettings } from '@/lib/hooks/useSettings'
 import { useFitness } from '@/lib/hooks/useFitness'
 import { useAchievements } from '@/lib/hooks/useAchievements'
@@ -205,10 +206,11 @@ export default function AnalyticsPage() {
     const dsaPct = dsaDays / days;
 
     // Tasks score (count days with at least 1 task completed)
-    const taskDays = new Set(tasks.filter(t => {
-      const d = t.completed_at?.slice(0, 10);
-      return d && d >= startDate && d <= today && t.status === 'done';
-    }).map(t => t.completed_at?.slice(0, 10))).size;
+    const allCompletedTaskDates = [
+      ...tasks.filter(t => t.status === 'done' && t.completed_at).map(t => t.completed_at?.slice(0, 10)),
+      ...trailerTasks.filter(t => t.status === 'done').map(t => (t as any).updated_at?.slice(0, 10) || t.created_at.slice(0, 10))
+    ].filter(d => d && d >= startDate && d <= today);
+    const taskDays = new Set(allCompletedTaskDates).size;
     const taskPct = taskDays / days;
 
     const score = Math.round(habitPct * 40 + dsaPct * 35 + taskPct * 25);
@@ -238,18 +240,28 @@ export default function AnalyticsPage() {
   // ── Tasks stats ──
   const taskStats = useMemo(() => {
     const sevenDaysAgo = isoDate(addDays(new Date(), -7))
-    const activeTasks = tasks.filter(t => t.status !== 'archived')
+    const activeStandardTasks = tasks.filter(t => t.status !== 'archived')
+    const activeTrailerTasks = trailerTasks
     
-    const total = activeTasks.length
-    const completedThisWeek = activeTasks.filter(t =>
-      t.status === 'done' && t.completed_at && t.completed_at.slice(0, 10) >= sevenDaysAgo
-    ).length
-    const overdue = activeTasks.filter(t =>
+    const total = activeStandardTasks.length + activeTrailerTasks.length
+    const completedThisWeek = 
+      activeStandardTasks.filter(t =>
+        t.status === 'done' && t.completed_at && t.completed_at.slice(0, 10) >= sevenDaysAgo
+      ).length + 
+      activeTrailerTasks.filter(t => 
+        t.status === 'done' && ((t as any).updated_at || t.created_at).slice(0, 10) >= sevenDaysAgo
+      ).length
+
+    const overdue = activeStandardTasks.filter(t =>
+      t.due_date && t.due_date < today && t.status !== 'done'
+    ).length + activeTrailerTasks.filter(t =>
       t.due_date && t.due_date < today && t.status !== 'done'
     ).length
-    const completionRate = total > 0 ? Math.round((activeTasks.filter(t => t.status === 'done').length / total) * 100) : 0
+
+    const totalDone = activeStandardTasks.filter(t => t.status === 'done').length + activeTrailerTasks.filter(t => t.status === 'done').length
+    const completionRate = total > 0 ? Math.round((totalDone / total) * 100) : 0
     return { total, completedThisWeek, overdue, completionRate }
-  }, [tasks, today])
+  }, [tasks, trailerTasks, today])
 
   // ── Top DSA Topics ──
   const topTopics = useMemo(() => {
