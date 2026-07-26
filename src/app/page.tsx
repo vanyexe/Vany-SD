@@ -12,9 +12,15 @@ import { useTrailer } from '@/lib/hooks/useTrailer'
 import { useTasks } from '@/lib/hooks/useTasks'
 import { HABITS, SAMPLE_QUOTES, PHASES } from '@/lib/data/seed'
 import {
-  CheckCircle2, Circle, Flame, BookOpen, Timer, ChevronRight, Target, Loader2, Plus, Zap, Check, ListTodo, Presentation, PlaySquare, CalendarDays, Dumbbell, Award
+  CheckCircle2, Circle, Flame, BookOpen, Timer, ChevronRight, Target, Loader2, Plus, Zap, Check, ListTodo, Presentation, PlaySquare, CalendarDays, Dumbbell, Award,
+  Star, Music, Coffee, Moon, Sun, Leaf, Wind, Droplets, Pencil, Heart, Brain
 } from 'lucide-react'
 import clsx from 'clsx'
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  Star, Flame, Zap, Music, Coffee, Moon, Sun, Dumbbell,
+  Leaf, Target, Wind, Droplets, Pencil, Heart, Brain, BookOpen
+}
 
 function getGreeting(): string {
   const hour = new Date().getHours()
@@ -45,8 +51,8 @@ export default function HomePage() {
   const currentPhaseData = PHASES[currentPhase - 1] ?? PHASES[0]
 
   const allHabits = useMemo(() => [
-    ...HABITS,
-    ...(customHabits || []).map(ch => ({ id: ch.id, name: ch.name, icon: ch.icon || '⭐' }))
+    ...HABITS.map(h => ({ ...h, isCustom: false, color: undefined })),
+    ...(customHabits || []).map(ch => ({ id: ch.id, name: ch.name, icon: ch.icon || 'Star', color: ch.color || '#3FA793', isCustom: true }))
   ], [customHabits]);
 
   const todayChecklist = allHabits.map(h => ({
@@ -188,29 +194,35 @@ export default function HomePage() {
                 {habitsLoading ? (
                   <div className="flex justify-center p-4"><Loader2 className="animate-spin text-muted" /></div>
                 ) : (
-                  todayChecklist.map(({ habit, done }) => (
-                    <button
-                      key={habit.id}
-                      onClick={() => toggle(habit.id, today)}
-                      className={clsx(
-                        'w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 border group',
-                        done ? 'bg-jade/5 border-jade/30 text-jade' : 'bg-surface hover:bg-surface-raised border-border text-secondary'
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={clsx("w-5 h-5 rounded-md flex items-center justify-center transition-colors duration-200 border", done ? 'bg-jade border-jade text-ink' : 'border-muted group-hover:border-primary text-transparent')}>
-                          <Check size={14} className={done ? 'opacity-100' : 'opacity-0'} />
+                  todayChecklist.map(({ habit, done }) => {
+                    const isCustom = habit.isCustom;
+                    const IconComponent = isCustom ? (ICON_MAP[habit.icon] || Star) : null;
+                    return (
+                      <button
+                        key={habit.id}
+                        onClick={() => toggle(habit.id, today)}
+                        className={clsx(
+                          'w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 border group',
+                          done ? 'bg-jade/5 border-jade/30 text-jade' : 'bg-surface hover:bg-surface-raised border-border text-secondary'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={clsx("w-5 h-5 rounded-md flex items-center justify-center transition-colors duration-200 border", done ? 'bg-jade border-jade text-ink' : 'border-muted group-hover:border-primary text-transparent')}>
+                            <Check size={14} className={done ? 'opacity-100' : 'opacity-0'} />
+                          </div>
+                          <span className={clsx('font-body text-base', done && 'line-through opacity-70')}>{habit.name}</span>
                         </div>
-                        <span className={clsx('font-body text-base', done && 'line-through opacity-70')}>{habit.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-raised border border-border">
-                          {getStreak(habit.id)} streak
-                        </span>
-                        <span className="text-xl opacity-60 grayscale group-hover:grayscale-0 transition-all">{habit.icon}</span>
-                      </div>
-                    </button>
-                  ))
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-raised border border-border">
+                            {getStreak(habit.id)} streak
+                          </span>
+                          <span className="text-xl opacity-60 grayscale group-hover:grayscale-0 transition-all flex items-center justify-center">
+                            {isCustom && IconComponent ? <IconComponent size={20} style={{ color: habit.color }} /> : habit.icon}
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })
                 )}
               </div>
             </div>
