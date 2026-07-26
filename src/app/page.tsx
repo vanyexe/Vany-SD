@@ -217,7 +217,7 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-5 pt-10 pb-16 space-y-8">
         
         {/* MOBILE STICKY HEADER */}
-        <div className="md:hidden sticky top-0 z-10 bg-ink/90 backdrop-blur-md py-3 border-b border-border flex justify-between items-center -mx-5 px-5">
+        <div className="md:hidden sticky top-0 z-50 bg-ink/90 backdrop-blur-md py-3 border-b border-border flex justify-between items-center -mx-5 px-5">
            <span className="font-mono text-sm text-gold">Day {dayNumber}</span>
            <div className="flex items-center gap-3">
              <span className="badge badge-jade text-xs px-2 py-0.5">Phase {currentPhase}</span>
@@ -231,7 +231,7 @@ export default function HomePage() {
           <div className="md:col-span-8 space-y-8">
             
             {/* 1. Hero Header */}
-            <div className="space-y-4 animate-slide-in-up">
+            <div className="space-y-4 animate-slide-in-up relative z-50">
               <div className="flex items-start justify-between">
                 <div>
                   <h1 className="font-display text-4xl md:text-5xl font-semibold text-primary tracking-tight">
