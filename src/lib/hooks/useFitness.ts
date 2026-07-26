@@ -107,11 +107,11 @@ export function useFitness() {
   const todayStr = getISTDateString();
   const todayWorkout = workouts.find(w => (w.workout_date || w.date) === todayStr);
   
-  // Real streak calculation
+  // Real streak calculation using IST dates
   const streak = (() => {
     if (!workouts.length) return 0;
     const dates = [...new Set(workouts.map(w => w.workout_date || w.date || ''))].filter(Boolean).sort().reverse();
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const yesterday = getISTDateString(new Date(Date.now() - 86400000));
     if (dates[0] !== todayStr && dates[0] !== yesterday) return 0;
     let s = 1;
     for (let i = 1; i < dates.length; i++) {
@@ -122,8 +122,10 @@ export function useFitness() {
     return s;
   })();
 
-  // Real weekly stats
-  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  // Real weekly stats using IST
+  const weekAgoDate = new Date();
+  weekAgoDate.setDate(weekAgoDate.getDate() - 7);
+  const weekAgo = getISTDateString(weekAgoDate);
   const thisWeekWorkouts = workouts.filter(w => (w.workout_date || w.date || '') >= weekAgo);
   const weeklyStats = {
     count: thisWeekWorkouts.length,

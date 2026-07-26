@@ -70,7 +70,8 @@ export default function JournalPage() {
         // Calculate streak
         const dates = entries.map((e: any) => e.entry_date).sort().reverse()
         const today = getISTDateString()
-        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+        const yesterdayDate = new Date(); yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterday = getISTDateString(yesterdayDate)
         if (!dates.length || (dates[0] !== today && dates[0] !== yesterday)) {
           setJournalStreak(0)
           return

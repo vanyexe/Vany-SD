@@ -121,7 +121,7 @@ export default function HomePage() {
             <div className="space-y-4 animate-slide-in-up">
               <div>
                 <h1 className="font-display text-4xl md:text-5xl font-semibold text-primary tracking-tight">
-                  {greeting}, Vansh
+                  {greeting}, {settings?.display_name || 'Vansh'}
                 </h1>
                 <p className="text-secondary text-lg mt-3 font-mono flex items-center gap-3">
                   <span>Day <span className="text-gold font-bold">{dayNumber}</span> of your journey</span>

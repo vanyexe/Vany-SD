@@ -56,12 +56,13 @@ export async function POST(request: Request) {
   if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { current_phase, phase_progress, display_name } = body
+  const { current_phase, phase_progress, display_name, start_date } = body
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (current_phase !== undefined) updates.current_phase = current_phase
   if (phase_progress !== undefined) updates.phase_progress = phase_progress
   if (display_name !== undefined) updates.display_name = display_name
+  if (start_date !== undefined) updates.start_date = start_date
 
   const { data, error } = await supabase
     .from('user_settings')
