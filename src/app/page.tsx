@@ -544,7 +544,7 @@ function NotifBell({
   count: number
   open: boolean
   onToggle: () => void
-  notifRef: React.RefObject<HTMLDivElement>
+  notifRef: React.RefObject<HTMLDivElement | null>
   notifications: { id: string; type: 'warn' | 'info' | 'success'; message: string; href: string }[]
 }) {
   const typeStyle = {
