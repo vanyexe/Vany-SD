@@ -66,14 +66,21 @@ export default function HomePage() {
 
   // Real weekly data: count habits done per day for last 7 days
   const weeklyData = useMemo(() => {
+    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
     const days = Array.from({length: 7}, (_, i) => {
       const d = new Date()
       d.setDate(d.getDate() - (6 - i))
-      return getISTDateString(d)
+      return {
+        dateStr: getISTDateString(d),
+        label: dayNames[d.getDay()]
+      }
     })
-    return days.map(date => {
+    return days.map(day => {
       // count how many of the 5 habits were done on that date
-      return HABITS.filter(h => isDone(h.id, date)).length
+      return {
+        label: day.label,
+        count: HABITS.filter(h => isDone(h.id, day.dateStr)).length
+      }
     })
   }, [isDone])
 
@@ -373,8 +380,8 @@ export default function HomePage() {
                 <h3 className="font-display text-lg text-primary">Weekly Progress</h3>
               </div>
               <div className="flex items-end justify-between h-32 px-2 pb-2 border-b border-border">
-                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
-                  const val = weeklyData[idx]
+                {weeklyData.map((data, idx) => {
+                  const val = data.count
                   const isToday = idx === 6
                   const height = (val / 5) * 100
                   let colorClass = 'fill-surface-raised'
@@ -395,7 +402,7 @@ export default function HomePage() {
                           {val}/5
                         </div>
                       </div>
-                      <span className={clsx("text-xs font-mono", isToday ? "text-primary font-bold" : "text-muted")}>{day}</span>
+                      <span className={clsx("text-xs font-mono", isToday ? "text-primary font-bold" : "text-muted")}>{data.label}</span>
                     </div>
                   )
                 })}
