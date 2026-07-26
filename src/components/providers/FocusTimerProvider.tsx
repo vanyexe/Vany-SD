@@ -160,10 +160,13 @@ export function FocusTimerProvider({ children }: { children: React.ReactNode }) 
     prevCustomRef.current = { customWork, customBreak, mode };
   }, [customWork, customBreak, isActive, getInitialTime, sessionType, mode]);
 
-  const changeMode = useCallback((newMode: Mode) => {
-    setMode(newMode);
-    setIsActive(false);
-    setTimeLeft(getInitialTime(sessionType, newMode));
+  const changeMode = useCallback((action: React.SetStateAction<Mode>) => {
+    setMode(prev => {
+      const newMode = typeof action === 'function' ? (action as any)(prev) : action;
+      setIsActive(false);
+      setTimeLeft(getInitialTime(sessionType, newMode));
+      return newMode;
+    });
   }, [getInitialTime, sessionType]);
 
   useEffect(() => {
