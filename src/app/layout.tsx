@@ -63,6 +63,8 @@ export default function RootLayout({
         This runs synchronously before React hydrates.
       */}
       <head>
+      </head>
+      <body className="bg-ink text-primary font-body antialiased" suppressHydrationWarning>
         <script id="theme-script" dangerouslySetInnerHTML={{
           __html: `
             (function() {
@@ -73,8 +75,6 @@ export default function RootLayout({
             })();
           `
         }} />
-      </head>
-      <body className="bg-ink text-primary font-body antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <ToastProvider>
             <FocusTimerProvider>
