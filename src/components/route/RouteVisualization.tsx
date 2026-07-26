@@ -68,15 +68,16 @@ export default function RouteVisualization({
   const overallPct = Math.round((completedMonths / totalMonths) * 100);
 
   return (
-    <div className="w-full relative py-4">
-      <svg
-        viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
-        className="w-full"
-        style={{ overflow: 'visible' }}
-        role="img"
-        aria-label={`Journey route: Phase ${currentPhase} of 6, ${overallPct}% complete`}
-      >
-        {/* ── Background track (muted) ── */}
+    <div className="w-full relative py-4 overflow-x-auto custom-scrollbar">
+      <div style={{ minWidth: `${VIEWBOX_W}px`, width: '100%' }}>
+        <svg
+          viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
+          className="w-full"
+          style={{ overflow: 'visible' }}
+          role="img"
+          aria-label={`Journey route: Phase ${currentPhase} of 6, ${overallPct}% complete`}
+        >
+          {/* ── Background track (muted) ── */}
         <line
           x1={getMonthX(1)} y1={LINE_Y}
           x2={getMonthX(24)} y2={LINE_Y}
@@ -196,15 +197,14 @@ export default function RouteVisualization({
 
               {/* Current phase subtitle under label */}
               {isActive && (
-                <text
-                  x={x} y={LINE_Y + 50}
-                  textAnchor="middle"
-                  fill="#9297A6"
-                  fontSize={9}
-                  fontFamily="var(--font-body)"
+                <foreignObject
+                  x={x - 50} y={LINE_Y + 42}
+                  width={100} height={40}
                 >
-                  {phase.subtitle.slice(0, 18)}…
-                </text>
+                  <div className="w-full h-full flex flex-col items-center text-center text-[#9297A6] text-[9px] font-body leading-[1.2]">
+                    {phase.subtitle}
+                  </div>
+                </foreignObject>
               )}
             </g>
           );
@@ -280,6 +280,7 @@ export default function RouteVisualization({
           </text>
         </g>
       </svg>
+      </div>
     </div>
   );
 }
