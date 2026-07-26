@@ -39,6 +39,16 @@ function getWeekDates(referenceDate: Date): string[] {
   })
 }
 
+function mapHabitId(id: string | number): number {
+  if (typeof id === 'number') return id;
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash |= 0;
+  }
+  return (Math.abs(hash) % 2000000000) + 1000;
+}
+
 export function useHabits() {
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [customHabits, setCustomHabits] = useState<CustomHabit[]>([])
@@ -79,7 +89,8 @@ export function useHabits() {
   useEffect(() => { fetchLogs() }, [fetchLogs])
 
   // ─── Toggle a habit log ───────────────────────────────────────
-  const toggle = useCallback(async (habitId: number | string, date: string) => {
+  const toggle = useCallback(async (rawHabitId: number | string, date: string) => {
+    const habitId = mapHabitId(rawHabitId);
     const existing = logs.find(l => String(l.habit_id) === String(habitId) && l.log_date === date)
     const newDone = existing ? !existing.done : true
 
@@ -137,9 +148,10 @@ export function useHabits() {
   }, [fetchLogs])
 
   // ─── Computed helpers ─────────────────────────────────────────
-  const isDone = useCallback((habitId: number | string, date: string) =>
-    logs.find(l => String(l.habit_id) === String(habitId) && l.log_date === date)?.done ?? false
-  , [logs])
+  const isDone = useCallback((rawHabitId: number | string, date: string) => {
+    const habitId = mapHabitId(rawHabitId);
+    return logs.find(l => String(l.habit_id) === String(habitId) && l.log_date === date)?.done ?? false
+  }, [logs])
 
   const getStreak = useCallback((habitId: number | string): number => {
     let streak = 0
@@ -156,7 +168,8 @@ export function useHabits() {
     return streak
   }, [isDone])
 
-  const getBestStreak = useCallback((habitId: number | string): number => {
+  const getBestStreak = useCallback((rawHabitId: number | string): number => {
+    const habitId = mapHabitId(rawHabitId);
     let best = 0
     let current = 0
 
