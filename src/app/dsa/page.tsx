@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useDsaProblems, DsaProblem } from '@/lib/hooks/useDsaProblems';
 import { DSA_TOPICS, PHASES } from '@/lib/data/seed';
 import {
@@ -9,12 +9,12 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from '@/components/providers/ToastProvider';
-
-const CURRENT_PHASE = 3;
+import { useSettings } from '@/lib/hooks/useSettings';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 
 export default function DsaPage() {
+  const { currentPhase, loading: settingsLoading } = useSettings();
   const { problems, dueForReview, totalSolved, solvedThisWeek, countByTopic, logProblem, markReviewed, editProblem, deleteProblem } = useDsaProblems();
   const toast = useToast();
 
@@ -46,8 +46,17 @@ export default function DsaPage() {
   const [editForm, setEditForm] = useState<Partial<DsaProblem>>({});
 
   // Phase filter (for topic progress)
-  const [selectedPhase, setSelectedPhase] = useState<number | 'all'>(CURRENT_PHASE);
-  const [expandedPhases, setExpandedPhases] = useState<number[]>([CURRENT_PHASE]);
+  const [selectedPhase, setSelectedPhase] = useState<number | 'all'>('all');
+  const [expandedPhases, setExpandedPhases] = useState<number[]>([]);
+  const [hasSetDefault, setHasSetDefault] = useState(false);
+
+  useEffect(() => {
+    if (!settingsLoading && !hasSetDefault) {
+      setSelectedPhase(currentPhase);
+      setExpandedPhases([currentPhase]);
+      setHasSetDefault(true);
+    }
+  }, [currentPhase, settingsLoading, hasSetDefault]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
