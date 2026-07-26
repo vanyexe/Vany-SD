@@ -7,6 +7,16 @@ import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 type Mode = 'login' | 'signup'
 
+function mapAuthError(msg: string): string {
+  if (msg.includes('Invalid login credentials')) return 'Incorrect email or password. Please try again.'
+  if (msg.includes('Email not confirmed')) return 'Please verify your email before signing in.'
+  if (msg.includes('User already registered')) return 'An account with this email already exists. Try signing in.'
+  if (msg.includes('Password should be')) return 'Password must be at least 6 characters long.'
+  if (msg.includes('Unable to validate')) return 'Session expired. Please sign in again.'
+  if (msg.includes('network')) return 'Network error. Check your connection and retry.'
+  return msg
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [mode, setMode] = useState<Mode>('login')
@@ -31,7 +41,7 @@ export default function LoginPage() {
         password,
       })
       if (error) {
-        setError(error.message)
+        setError(mapAuthError(error.message))
         setLoading(false)
       } else {
         router.push('/')
@@ -44,7 +54,7 @@ export default function LoginPage() {
         password,
       })
       if (signUpError) {
-        setError(signUpError.message)
+        setError(mapAuthError(signUpError.message))
         setLoading(false)
         return
       }

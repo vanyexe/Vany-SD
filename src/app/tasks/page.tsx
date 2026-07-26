@@ -9,6 +9,7 @@ import {
 import clsx from 'clsx'
 import { useTasks, type Task } from '@/lib/hooks/useTasks'
 import { useToast } from '@/components/providers/ToastProvider'
+import Confirm from '@/components/ui/Confirm'
 
 /* ─── Smart filter definitions ─── */
 const SMART_FILTERS = [
@@ -317,6 +318,7 @@ export default function TasksPage() {
   const [adding, setAdding]         = useState(false)
   const [justAdded, setJustAdded]   = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   /* ─── Stats ─── */
@@ -398,14 +400,20 @@ export default function TasksPage() {
   }, [tasks, updateTask, toast])
 
   const handleDelete = useCallback(async (id: string) => {
-    if (!confirm('Delete this task?')) return
+    setDeleteTaskId(id)
+  }, [])
+
+  const confirmDelete = async () => {
+    if (!deleteTaskId) return
     try {
-      await deleteTask(id)
+      await deleteTask(deleteTaskId)
       toast.success('Task deleted')
     } catch {
       toast.error('Failed to delete task')
+    } finally {
+      setDeleteTaskId(null)
     }
-  }, [deleteTask, toast])
+  }
 
   const handleStar = useCallback(async (id: string) => {
     await toggleFavorite(id)
@@ -611,6 +619,16 @@ export default function TasksPage() {
           onSave={handleSaveEdit}
         />
       )}
+
+      <Confirm
+        open={!!deleteTaskId}
+        onClose={() => setDeleteTaskId(null)}
+        onConfirm={confirmDelete}
+        title="Delete Task?"
+        message="This task will be permanently deleted."
+        confirmText="Delete Task"
+        variant="danger"
+      />
     </div>
   )
 }

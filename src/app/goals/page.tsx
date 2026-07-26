@@ -53,7 +53,12 @@ export default function GoalsPage() {
 
   const handleSync = async () => {
     setSyncing(true)
-    try { await syncAutoGoals() } catch {}
+    try {
+      await syncAutoGoals()
+      toast.success('Goals synced!')
+    } catch {
+      toast.error('Failed to sync goals')
+    }
     setSyncing(false)
   }
 

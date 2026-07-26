@@ -3,15 +3,17 @@ import { getISTDateString } from '@/lib/dateUtils';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Plus, X, Search, Dumbbell, Save, Activity } from 'lucide-react';
+import { ChevronLeft, Plus, X, Search, Save, Activity } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
+import { useToast } from '@/components/providers/ToastProvider';
 
 type FitnessExercise = { id: string; name: string; category: string; icon: string; color: string; unit: string; has_sets: boolean; has_reps: boolean; has_weight: boolean; has_distance: boolean; has_duration: boolean; is_archived: boolean; description?: string; }
 type FitnessWorkoutSet = { id?: string; exercise_id?: string; exercise_name: string; set_number: number; reps?: number; weight_kg?: number; distance_km?: number; duration_min?: number; notes?: string; }
 type FitnessWorkout = { id: string; workout_date: string; title?: string; notes?: string; mood?: number; energy_level?: number; difficulty?: number; duration_min?: number; completed: boolean; created_at: string; sets?: FitnessWorkoutSet[]; }
 
 export default function LogWorkoutPage() {
+  const toast = useToast();
   const router = useRouter();
   const [exercises, setExercises] = useState<FitnessExercise[]>([]);
   const [search, setSearch] = useState('');
@@ -97,7 +99,7 @@ export default function LogWorkoutPage() {
   };
 
   const handleSave = async () => {
-    if (selectedExercises.length === 0) return alert('Add at least one exercise');
+    if (selectedExercises.length === 0) { toast.error('Add at least one exercise first'); return; }
     setSaving(true);
     try {
       const allSets: Partial<FitnessWorkoutSet>[] = [];
@@ -128,13 +130,16 @@ export default function LogWorkoutPage() {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
+        toast.success('Workout saved! 💪');
         router.push('/fitness');
       } else {
-        alert('Failed to save');
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to save workout');
         setSaving(false);
       }
     } catch (e) {
       console.error(e);
+      toast.error('Network error. Please try again.');
       setSaving(false);
     }
   };
@@ -207,21 +212,21 @@ export default function LogWorkoutPage() {
                     <div className="w-8 text-xs font-mono text-muted text-center py-2 bg-surface rounded">S{set.set_number}</div>
                     
                     {block.exercise.has_reps && (
-                      <input type="number" placeholder="Reps" className="input w-16 text-center text-sm px-1 py-1 h-8" value={set.reps || ''} onChange={e => handleSetChange(exIndex, setIndex, 'reps', e.target.value)} />
+                      <input type="number" placeholder="Reps" min="0" className="input w-16 text-center text-sm px-1 py-1 h-8" value={set.reps || ''} onChange={e => handleSetChange(exIndex, setIndex, 'reps', e.target.value)} />
                     )}
                     {block.exercise.has_weight && (
                       <div className="flex items-center gap-1">
-                        <input type="number" placeholder="Kg" className="input w-16 text-center text-sm px-1 py-1 h-8" value={set.weight_kg || ''} onChange={e => handleSetChange(exIndex, setIndex, 'weight_kg', e.target.value)} />
+                        <input type="number" placeholder="Kg" min="0" step="0.5" className="input w-16 text-center text-sm px-1 py-1 h-8" value={set.weight_kg || ''} onChange={e => handleSetChange(exIndex, setIndex, 'weight_kg', e.target.value)} />
                       </div>
                     )}
                     {block.exercise.has_distance && (
                       <div className="flex items-center gap-1">
-                        <input type="number" placeholder="Km" step="0.1" className="input w-16 text-center text-sm px-1 py-1 h-8" value={set.distance_km || ''} onChange={e => handleSetChange(exIndex, setIndex, 'distance_km', e.target.value)} />
+                        <input type="number" placeholder="Km" min="0" step="0.1" className="input w-16 text-center text-sm px-1 py-1 h-8" value={set.distance_km || ''} onChange={e => handleSetChange(exIndex, setIndex, 'distance_km', e.target.value)} />
                       </div>
                     )}
                     {block.exercise.has_duration && (
                       <div className="flex items-center gap-1">
-                        <input type="number" placeholder="Min" className="input w-16 text-center text-sm px-1 py-1 h-8" value={set.duration_min || ''} onChange={e => handleSetChange(exIndex, setIndex, 'duration_min', e.target.value)} />
+                        <input type="number" placeholder="Min" min="0" className="input w-16 text-center text-sm px-1 py-1 h-8" value={set.duration_min || ''} onChange={e => handleSetChange(exIndex, setIndex, 'duration_min', e.target.value)} />
                       </div>
                     )}
                     

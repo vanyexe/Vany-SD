@@ -106,9 +106,9 @@ export default function HabitsPage() {
 
   const perfectDaysThisWeek = useMemo(() => {
     return weekDates.filter(d =>
-      d <= today && HABITS.every(h => isDone(h.id, d))
+      d <= today && allHabits.length > 0 && allHabits.every(h => isDone(h.id, d))
     ).length;
-  }, [weekDates, today, isDone]);
+  }, [weekDates, today, isDone, allHabits]);
 
   // ── Heatmap ────────────────────────────────────────────────
   const heatmapDays = useMemo(() => {
@@ -121,11 +121,11 @@ export default function HabitsPage() {
       const d = new Date(reference);
       d.setDate(d.getDate() - i);
       const dateStr = getISTDateString(d);
-      const count = dateStr <= today ? HABITS.filter(h => isDone(h.id, dateStr)).length : 0;
+      const count = dateStr <= today ? allHabits.filter(h => isDone(h.id, dateStr)).length : 0;
       days.push({ date: dateStr, count });
     }
     return days;
-  }, [today, isDone]);
+  }, [today, isDone, allHabits]);
 
   // ── Handlers ───────────────────────────────────────────────
   const handleAddCustom = async (e: React.FormEvent) => {
@@ -202,7 +202,7 @@ export default function HabitsPage() {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={() => setWeekOffset(w => w - 1)} className="btn btn-ghost py-2 px-2 h-auto">
+            <button aria-label="Previous week" onClick={() => setWeekOffset(w => w - 1)} className="btn btn-ghost py-2 px-2 h-auto">
               <ChevronLeft size={16} />
             </button>
             {!isCurrentWeek && (
@@ -211,6 +211,7 @@ export default function HabitsPage() {
               </button>
             )}
             <button
+              aria-label="Next week"
               onClick={() => setWeekOffset(w => Math.min(0, w + 1))}
               className={clsx('btn btn-ghost py-2 px-2 h-auto', isCurrentWeek && 'opacity-30 cursor-not-allowed')}
               disabled={isCurrentWeek}
@@ -397,6 +398,7 @@ export default function HabitsPage() {
                           onClick={() => handleDeleteCustom(habit.id as string)}
                           className="text-muted hover:text-brick opacity-0 group-hover:opacity-100 transition-opacity p-1"
                           title="Remove habit"
+                          aria-label={`Remove ${habit.name} habit`}
                         >
                           <Trash2 size={14} />
                         </button>
