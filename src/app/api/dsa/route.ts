@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { title, topic_id, difficulty, platform_url } = body
+  const { title, topic_id, difficulty, platform_url, confidence_rating, time_taken_minutes, companies, notes } = body
 
   if (!title || !topic_id || !difficulty) {
     return NextResponse.json({ error: 'title, topic_id, difficulty are required' }, { status: 400 })
@@ -48,6 +48,10 @@ export async function POST(request: Request) {
       topic_id,
       difficulty,
       platform_url: platform_url || null,
+      confidence_rating: confidence_rating || null,
+      time_taken_minutes: time_taken_minutes || null,
+      companies: companies || null,
+      notes: notes || null,
       date_solved: today,
       next_review_date,
       review_count: 0,
