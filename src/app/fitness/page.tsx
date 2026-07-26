@@ -59,7 +59,8 @@ export default function FitnessDashboardPage() {
   }, []);
 
   const todayStr = getISTDateString();
-  const todaysWorkout = workouts.find(w => w.workout_date === todayStr);
+  const todaysWorkouts = workouts.filter(w => w.workout_date === todayStr);
+  const todaysDuration = todaysWorkouts.reduce((sum, w) => sum + (w.duration_min || 0), 0);
 
   const streak = useMemo(() => {
     if (!workouts.length) return 0;
@@ -110,15 +111,15 @@ export default function FitnessDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
           <div className="card-raised p-5 border-l-4 border-l-jade">
             <div className="text-xs font-mono text-secondary mb-2 uppercase">Today's Workout</div>
-            {loading ? <Skeleton className="h-8 w-20 mb-1" /> : todaysWorkout ? (
+            {loading ? <Skeleton className="h-8 w-20 mb-1" /> : todaysWorkouts.length > 0 ? (
               <>
-                <div className="font-display text-2xl text-jade mb-1">{todaysWorkout.sets?.length || 0} Exercises</div>
-                <div className="text-xs text-muted font-mono">{todaysWorkout.duration_min || 0} mins</div>
+                <div className="font-display text-2xl text-jade mb-1">{todaysWorkouts.length} {todaysWorkouts.length === 1 ? 'Workout' : 'Workouts'}</div>
+                <div className="text-xs text-muted font-mono">{todaysDuration} mins</div>
               </>
             ) : (
               <div className="text-xs text-primary mb-2">Log your first workout today</div>
             )}
-            {!loading && !todaysWorkout && (
+            {!loading && todaysWorkouts.length === 0 && (
               <Link href="/fitness/log" className="text-xs font-mono text-jade hover:underline">Log Workout →</Link>
             )}
           </div>
